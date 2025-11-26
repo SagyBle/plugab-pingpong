@@ -1,0 +1,116 @@
+import { Model } from "mongoose";
+import MongoDBAbstractService from "../mongodbAbstract.backendService";
+import { dashboardModelMap } from "./dashboardModelMap";
+import type { Player } from "./schemas/player.schema";
+import type { Tournament } from "./schemas/tournament.schema";
+import type { Match } from "./schemas/match.schema";
+import type { Admin } from "./schemas/admin.schema";
+
+class DashboardMongoDBService extends MongoDBAbstractService {
+  private static instance: DashboardMongoDBService;
+
+  private constructor() {
+    super();
+  }
+
+  public static async getInstance(): Promise<DashboardMongoDBService> {
+    if (!DashboardMongoDBService.instance) {
+      const instance = new DashboardMongoDBService();
+      await instance.init();
+      DashboardMongoDBService.instance = instance;
+    }
+    return DashboardMongoDBService.instance;
+  }
+
+  protected getUri(): string {
+    return process.env.MONGODB_DASHBOARD_URI || "";
+  }
+
+  private async init() {
+    await this.connect();
+
+    // Register all models from the model map
+    for (const [modelName, schema] of Object.entries(dashboardModelMap)) {
+      this.models[modelName] = this.getOrCreateModel(modelName, schema as any);
+    }
+  }
+
+  // Direct model accessors with proper typing
+  get Player(): Model<Player> {
+    return this.getModel<Player>("Player");
+  }
+
+  get Tournament(): Model<Tournament> {
+    return this.getModel<Tournament>("Tournament");
+  }
+
+  get Match(): Model<Match> {
+    return this.getModel<Match>("Match");
+  }
+
+  get Admin(): Model<Admin> {
+    return this.getModel<Admin>("Admin");
+  }
+
+  // Convenience methods for Players
+  public async createPlayer(
+    data: Omit<Player, "_id" | "createdAt" | "updatedAt">
+  ) {
+    return this.create<Player>(this.Player, data);
+  }
+
+  public async findPlayerByEmail(email: string) {
+    return this.Player.findOne({ email }).lean();
+  }
+
+  public async getPlayersByStatus(status: "ACTIVE" | "INACTIVE" | "BANNED") {
+    return this.getAll<Player>(this.Player, { status });
+  }
+
+  // Convenience methods for Tournaments
+  public async createTournament(
+    data: Omit<Tournament, "_id" | "createdAt" | "updatedAt">
+  ) {
+    return this.create<Tournament>(this.Tournament, data);
+  }
+
+  public async getPublishedTournaments() {
+    return this.getAll<Tournament>(
+      this.Tournament,
+      { isPublished: true },
+      { sort: { startDate: -1 } }
+    );
+  }
+
+  public async getTournamentById(id: string) {
+    return this.Tournament.findById(id)
+      .populate("players", "name email phoneNumber status")
+      .populate("matches")
+      .populate("winner", "name email")
+      .lean();
+  }
+
+  // Convenience methods for Matches
+  public async createMatch(
+    data: Omit<Match, "_id" | "createdAt" | "updatedAt">
+  ) {
+    return this.create<Match>(this.Match, data);
+  }
+
+  public async getMatchesByTournament(tournamentId: string) {
+    return this.getAll<Match>(this.Match, { tournament: tournamentId });
+  }
+
+  // Convenience methods for Admin
+  public async createAdmin(
+    data: Omit<Admin, "_id" | "createdAt" | "updatedAt">
+  ) {
+    return this.create<Admin>(this.Admin, data);
+  }
+
+  public async findAdminByEmail(email: string) {
+    return this.Admin.findOne({ email }).lean();
+  }
+}
+
+export default DashboardMongoDBService;
