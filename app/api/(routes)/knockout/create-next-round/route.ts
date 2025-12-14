@@ -55,7 +55,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Find the highest round number
-    const currentRound = allMatches[0].round;
+    const currentRound = allMatches[0]?.round;
+
+    if (!currentRound) {
+      return BackendApiService.errorResponse("Invalid match data found.", 400);
+    }
+
     const currentRoundMatches = allMatches.filter(
       (m: any) => m.round === currentRound
     );
