@@ -32,6 +32,7 @@ import {
   Shuffle,
   Trash2,
   AlertCircle,
+  Target,
 } from "lucide-react";
 
 interface Tournament {
@@ -79,6 +80,7 @@ function GroupsPage() {
   const [showWarningDialog, setShowWarningDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [creatingMatches, setCreatingMatches] = useState<string | null>(null);
 
   useEffect(() => {
     if (tournamentId) {
@@ -166,6 +168,24 @@ function GroupsPage() {
       toast.error("אירעה שגיאה");
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleCreateMatches = async (groupId: string) => {
+    setCreatingMatches(groupId);
+    try {
+      const response = await GroupFrontendService.createMatches(groupId);
+
+      if (response.success) {
+        toast.success("המשחקים נוצרו בהצלחה!");
+        await fetchGroups();
+      } else {
+        toast.error(response.error || "נכשל ביצירת משחקים");
+      }
+    } catch (error) {
+      toast.error("אירעה שגיאה");
+    } finally {
+      setCreatingMatches(null);
     }
   };
 
@@ -378,6 +398,49 @@ function GroupsPage() {
                         </CardDescription>
                       </CardHeader>
                       <CardContent dir="rtl">
+                        {/* Create Matches Button */}
+                        {group.matches.length === 0 && (
+                          <div className="mb-4">
+                            <Button
+                              onClick={() => handleCreateMatches(group._id)}
+                              disabled={creatingMatches === group._id}
+                              size="sm"
+                              className="w-full bg-blue-600 hover:bg-blue-700"
+                            >
+                              {creatingMatches === group._id ? (
+                                <span className="flex items-center gap-2">
+                                  <svg
+                                    className="animate-spin h-3.5 w-3.5"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <circle
+                                      className="opacity-25"
+                                      cx="12"
+                                      cy="12"
+                                      r="10"
+                                      stroke="currentColor"
+                                      strokeWidth="4"
+                                    ></circle>
+                                    <path
+                                      className="opacity-75"
+                                      fill="currentColor"
+                                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                    ></path>
+                                  </svg>
+                                  יוצר משחקים...
+                                </span>
+                              ) : (
+                                <span className="flex items-center gap-2">
+                                  צור משחקים
+                                  <Target className="w-3.5 h-3.5" />
+                                </span>
+                              )}
+                            </Button>
+                          </div>
+                        )}
+
                         {/* Standings Table */}
                         <div className="mb-4">
                           <h3 className="text-sm font-semibold mb-2 text-right">
@@ -434,19 +497,57 @@ function GroupsPage() {
                                 (match: any, index: number) => (
                                   <div
                                     key={match._id || index}
-                                    className="bg-gray-50 rounded-lg p-2.5 text-sm"
+                                    className={`rounded-lg p-2.5 text-sm border ${
+                                      match.status === "COMPLETED"
+                                        ? "bg-green-50 border-green-200"
+                                        : match.status === "IN_PROGRESS"
+                                        ? "bg-blue-50 border-blue-200"
+                                        : "bg-gray-50 border-gray-200"
+                                    }`}
                                   >
-                                    <div className="flex items-center justify-between">
-                                      <span className="text-right flex-1">
-                                        {match.player1?.name || "שחקן 1"}
-                                      </span>
-                                      <span className="px-2 text-gray-500">
-                                        vs
-                                      </span>
-                                      <span className="text-left flex-1">
-                                        {match.player2?.name || "שחקן 2"}
-                                      </span>
+                                    <div className="flex items-center justify-between gap-2">
+                                      <div className="flex-1 text-right truncate">
+                                        <span
+                                          className={
+                                            match.winner === match.player1?._id
+                                              ? "font-bold"
+                                              : ""
+                                          }
+                                        >
+                                          {match.player1?.name || "שחקן 1"}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-2 px-2">
+                                        {match.status === "COMPLETED" ? (
+                                          <span className="font-semibold text-gray-700">
+                                            {match.player1Score} -{" "}
+                                            {match.player2Score}
+                                          </span>
+                                        ) : (
+                                          <span className="text-gray-500 text-xs">
+                                            vs
+                                          </span>
+                                        )}
+                                      </div>
+                                      <div className="flex-1 text-left truncate">
+                                        <span
+                                          className={
+                                            match.winner === match.player2?._id
+                                              ? "font-bold"
+                                              : ""
+                                          }
+                                        >
+                                          {match.player2?.name || "שחקן 2"}
+                                        </span>
+                                      </div>
                                     </div>
+                                    {match.status === "SCHEDULED" && (
+                                      <div className="text-center mt-1.5">
+                                        <span className="inline-block px-2 py-0.5 bg-white rounded text-xs text-gray-600">
+                                          ממתין למשחק
+                                        </span>
+                                      </div>
+                                    )}
                                   </div>
                                 )
                               )}

@@ -135,7 +135,14 @@ class DashboardMongoDBService extends MongoDBAbstractService {
         path: "standings.player",
         select: "name phoneNumber status",
       })
-      .populate("matches")
+      .populate({
+        path: "matches",
+        populate: [
+          { path: "player1", select: "name phoneNumber" },
+          { path: "player2", select: "name phoneNumber" },
+          { path: "winner", select: "name" },
+        ],
+      })
       .populate("advancingPlayers", "name phoneNumber")
       .lean();
   }
@@ -151,7 +158,14 @@ class DashboardMongoDBService extends MongoDBAbstractService {
         path: "standings.player",
         select: "name phoneNumber status",
       })
-      .populate("matches")
+      .populate({
+        path: "matches",
+        populate: [
+          { path: "player1", select: "name phoneNumber" },
+          { path: "player2", select: "name phoneNumber" },
+          { path: "winner", select: "name" },
+        ],
+      })
       .populate("advancingPlayers", "name phoneNumber")
       .lean();
   }

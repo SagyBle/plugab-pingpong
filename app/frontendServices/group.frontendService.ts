@@ -21,6 +21,10 @@ class GroupFrontendService {
   static async deleteGroups(tournamentId: string) {
     return await ApiService.delete("/groups/delete", { tournamentId });
   }
+
+  static async createMatches(groupId: string) {
+    return await ApiService.post("/groups/create-matches", { groupId });
+  }
 }
 
 export default GroupFrontendService;

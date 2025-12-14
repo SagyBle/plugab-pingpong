@@ -20,6 +20,7 @@ const publicRoutes = [
   "/api/groups/create",
   "/api/groups/list",
   "/api/groups/delete",
+  "/api/groups/create-matches",
 ];
 
 const adminOnlyRoutes = ["/api/admin/signup"];
