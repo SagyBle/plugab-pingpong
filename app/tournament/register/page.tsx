@@ -29,8 +29,6 @@ import {
   Trophy,
   Users,
   ArrowLeft,
-  Clock,
-  Award,
   Target,
   Search,
   UserPlus,
@@ -54,7 +52,7 @@ interface Tournament {
   winner: any;
 }
 
-export default function TournamentsPage() {
+export default function RegisterPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tournamentId = searchParams.get("id");
@@ -75,17 +73,16 @@ export default function TournamentsPage() {
 
   useEffect(() => {
     setLoading(true);
-    setSelectedTournament(null); // Reset selected tournament
+    setSelectedTournament(null);
 
     if (tournamentId) {
       fetchTournamentById(tournamentId);
-      fetchAllPlayers(); // Fetch players for autocomplete
+      fetchAllPlayers();
     } else {
       fetchTournaments();
     }
   }, [tournamentId]);
 
-  // Close suggestions when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -122,11 +119,11 @@ export default function TournamentsPage() {
         setSelectedTournament(response.data as Tournament);
       } else {
         toast.error("הטורניר לא נמצא");
-        router.push("/tournaments");
+        router.push("/tournament/register");
       }
     } catch (error) {
       toast.error("אירעה שגיאה");
-      router.push("/tournaments");
+      router.push("/tournament/register");
     } finally {
       setLoading(false);
     }
@@ -154,13 +151,12 @@ export default function TournamentsPage() {
       );
 
       if (response.success) {
-        toast.success(`${selectedPlayer.name} נוסף לטורניר!`);
-        // Refresh tournament data
+        toast.success(`${selectedPlayer.name} נרשם לטורניר!`);
         await fetchTournamentById(selectedTournament._id);
         setSearchQuery("");
         setSelectedPlayer(null);
       } else {
-        toast.error(response.error || "נכשל בהוספת שחקן");
+        toast.error(response.error || "נכשל ברישום");
       }
     } catch (error) {
       toast.error("אירעה שגיאה");
@@ -205,7 +201,7 @@ export default function TournamentsPage() {
   if (selectedTournament) {
     return (
       <div className="min-h-screen bg-gray-50">
-        {/* Navigation - Mobile Optimized */}
+        {/* Navigation */}
         <nav className="border-b bg-white fixed w-full top-0 z-50" dir="rtl">
           <div className="container mx-auto px-3 sm:px-4 py-3 flex justify-between items-center">
             <Link href="/" className="flex items-center gap-1.5 sm:gap-2">
@@ -213,7 +209,7 @@ export default function TournamentsPage() {
                 פינג פונג לוויתן
               </span>
               <div className="bg-blue-600 p-1 sm:p-1.5 rounded-md">
-                <Trophy className="w-4 h-4 sm:w-4 sm:h-4 text-white" />
+                <Trophy className="w-4 h-4 text-white" />
               </div>
             </Link>
             <div className="flex gap-2">
@@ -225,11 +221,6 @@ export default function TournamentsPage() {
                   כניסת מנהל
                 </Button>
               </Link>
-              <Link href="/tournaments">
-                <Button variant="ghost" size="sm" className="text-sm">
-                  טורנירים
-                </Button>
-              </Link>
             </div>
           </div>
         </nav>
@@ -237,7 +228,17 @@ export default function TournamentsPage() {
         <main className="container mx-auto px-3 sm:px-4 pt-16 pb-8">
           <div className="max-w-3xl mx-auto">
             {/* Back Button */}
-            <Link href="/tournaments"></Link>
+            <Link href="/tournament/register">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mb-4 text-sm"
+                dir="rtl"
+              >
+                <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />
+                חזרה
+              </Button>
+            </Link>
 
             {loading ? (
               <div className="text-center py-12" dir="rtl">
@@ -280,10 +281,10 @@ export default function TournamentsPage() {
                   <CardHeader className="pb-3 sm:pb-4" dir="rtl">
                     <CardTitle className="flex items-center gap-2 text-lg text-right">
                       <Users className="w-5 h-5" />
-                      משתתפים
+                      נרשמים
                     </CardTitle>
                     <CardDescription className="text-sm text-right">
-                      {selectedTournament.players?.length || 0} שחקנים רשומים
+                      {selectedTournament.players?.length || 0} שחקנים נרשמו
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="px-3 sm:px-6">
@@ -293,7 +294,7 @@ export default function TournamentsPage() {
                         <div className="relative">
                           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                           <Input
-                            placeholder="חפש שחקנים להוספה..."
+                            placeholder="חפש שחקנים להרשמה..."
                             value={searchQuery}
                             onChange={(e) => {
                               setSearchQuery(e.target.value);
@@ -320,6 +321,9 @@ export default function TournamentsPage() {
                                     <div className="flex-1 min-w-0 text-right">
                                       <p className="font-medium text-gray-900 text-sm truncate">
                                         {player.name}
+                                      </p>
+                                      <p className="text-xs text-gray-500 truncate">
+                                        {player.email}
                                       </p>
                                     </div>
                                     <div className="bg-blue-50 w-7 h-7 rounded-full flex items-center justify-center">
@@ -375,7 +379,7 @@ export default function TournamentsPage() {
                       <div className="text-center py-8" dir="rtl">
                         <Users className="w-10 h-10 mx-auto text-gray-300 mb-2" />
                         <p className="text-gray-500 text-sm text-center">
-                          אין שחקנים רשומים עדיין
+                          אין נרשמים עדיין
                         </p>
                       </div>
                     )}
@@ -393,10 +397,10 @@ export default function TournamentsPage() {
                   >
                     <DialogHeader>
                       <DialogTitle className="text-base text-right">
-                        הוסף שחקן לטורניר
+                        רישום לטורניר
                       </DialogTitle>
                       <DialogDescription className="text-sm text-right">
-                        האם אתה בטוח שברצונך להוסיף את השחקן הזה לטורניר?
+                        האם אתה בטוח שברצונך לרשום את השחקן הזה לטורניר?
                       </DialogDescription>
                     </DialogHeader>
 
@@ -406,7 +410,9 @@ export default function TournamentsPage() {
                           <p className="font-semibold text-base mb-1 text-right">
                             {selectedPlayer.name}
                           </p>
-
+                          <p className="text-sm text-gray-600 text-right">
+                            {selectedPlayer.email}
+                          </p>
                           {selectedPlayer.phoneNumber && (
                             <p className="text-sm text-gray-600 text-right">
                               {selectedPlayer.phoneNumber}
@@ -466,11 +472,11 @@ export default function TournamentsPage() {
                                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                               ></path>
                             </svg>
-                            מוסיף...
+                            נרשם...
                           </span>
                         ) : (
                           <span className="flex items-center gap-2">
-                            הוסף שחקן
+                            רישום לטורניר
                             <UserPlus className="w-3.5 h-3.5" />
                           </span>
                         )}
@@ -489,7 +495,7 @@ export default function TournamentsPage() {
   // Show tournaments list view
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navigation - Mobile Optimized */}
+      {/* Navigation */}
       <nav className="border-b bg-white fixed w-full top-0 z-50" dir="rtl">
         <div className="container mx-auto px-3 sm:px-4 py-3 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-1.5 sm:gap-2">
@@ -497,7 +503,7 @@ export default function TournamentsPage() {
               פינג פונג לוויתן
             </span>
             <div className="bg-blue-600 p-1 sm:p-1.5 rounded-md">
-              <Trophy className="w-4 h-4 sm:w-4 sm:h-4 text-white" />
+              <Trophy className="w-4 h-4 text-white" />
             </div>
           </Link>
           <div className="flex gap-2">
@@ -509,9 +515,9 @@ export default function TournamentsPage() {
                 כניסת מנהל
               </Button>
             </Link>
-            <Link href="/tournaments">
+            <Link href="/tournament/register">
               <Button variant="ghost" size="sm" className="text-sm">
-                טורנירים
+                הרשמה
               </Button>
             </Link>
           </div>
@@ -525,10 +531,10 @@ export default function TournamentsPage() {
               <Trophy className="w-6 h-6 text-white" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-semibold mb-2 text-gray-900">
-              טורנירים
+              הרשמה לטורנירים
             </h1>
             <p className="text-sm sm:text-base text-gray-600">
-              עיין והצטרף לתחרויות מרגשות
+              בחר טורניר והרשם לתחרות
             </p>
           </div>
 
@@ -544,7 +550,7 @@ export default function TournamentsPage() {
               <CardContent className="py-12 text-center" dir="rtl">
                 <Trophy className="w-16 h-16 mx-auto text-gray-300 mb-3" />
                 <p className="text-lg text-gray-600 mb-2 text-center">
-                  אין טורנירים זמינים
+                  אין טורנירים זמינים להרשמה
                 </p>
                 <p className="text-sm text-gray-500 text-center">
                   חזור בקרוב לאירועים הקרובים!
@@ -558,7 +564,7 @@ export default function TournamentsPage() {
                   key={tournament._id}
                   className="hover:shadow-md transition-all cursor-pointer border hover:border-blue-300"
                   onClick={() =>
-                    router.push(`/tournaments?id=${tournament._id}`)
+                    router.push(`/tournament/register?id=${tournament._id}`)
                   }
                 >
                   <CardHeader className="pb-3" dir="rtl">
@@ -598,7 +604,7 @@ export default function TournamentsPage() {
                         {tournament.players?.length || 0}
                         {tournament.maxPlayers > 0 &&
                           ` / ${tournament.maxPlayers}`}{" "}
-                        שחקנים
+                        נרשמו
                       </span>
                       <Users className="w-3.5 h-3.5 text-gray-600" />
                     </div>
@@ -612,7 +618,7 @@ export default function TournamentsPage() {
                     )}
                     <div className="pt-2 flex items-center justify-between">
                       <span className="text-xs text-gray-500 hover:text-blue-600 transition-colors">
-                        ← פרטים נוספים
+                        ← פרטים והרשמה
                       </span>
                       <span className="text-xs bg-blue-600 text-white px-2.5 py-0.5 rounded-full font-medium">
                         {tournament.format.toUpperCase()}

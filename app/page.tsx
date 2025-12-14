@@ -17,16 +17,16 @@ export default function Home() {
             </span>
           </Link>
           <div className="flex gap-3">
-            <Link href="/tournaments">
+            <Link href="/tournament/register">
               <Button variant="ghost" className="font-medium">
-                Tournaments
+                Register
               </Button>
             </Link>
-            <Link href="/login">
+            {/* <Link href="/login">
               <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
                 Admin Login
               </Button>
-            </Link>
+            </Link> */}
           </div>
         </div>
       </nav>
@@ -53,12 +53,12 @@ export default function Home() {
             and track your journey to becoming a champion.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/tournaments">
+            <Link href="/tournament/register">
               <Button
                 size="lg"
                 className="text-lg px-8 py-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all"
               >
-                View Tournaments
+                Register Now
                 <Zap className="ml-2 w-5 h-5" />
               </Button>
             </Link>
@@ -136,13 +136,13 @@ export default function Home() {
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
             Join hundreds of players competing for glory and prizes
           </p>
-          <Link href="/tournaments">
+          <Link href="/tournament/register">
             <Button
               size="lg"
               variant="secondary"
               className="text-lg px-8 py-6 bg-white text-blue-600 hover:bg-gray-50 shadow-xl"
             >
-              Explore Tournaments
+              Register for Tournament
               <TrendingUp className="ml-2 w-5 h-5" />
             </Button>
           </Link>

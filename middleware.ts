@@ -7,6 +7,7 @@ const publicRoutes = [
   "/",
   "/tournaments",
   "/login",
+  "/tournament/register",
   "/api/admin/login",
   "/api/tournaments/list",
   "/api/players/list",
