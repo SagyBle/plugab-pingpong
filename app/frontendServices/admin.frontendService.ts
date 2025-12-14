@@ -19,7 +19,7 @@ class AdminFrontendService {
   }
 
   static async login(data: AdminLoginData) {
-    const response = await ApiService.post("/admin/login", data);
+    const response = await ApiService.post<{ token: string }>("/admin/login", data);
     
     if (response.success && response.data?.token) {
       ApiService.setToken(response.data.token);

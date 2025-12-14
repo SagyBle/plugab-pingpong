@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -54,7 +55,7 @@ interface Tournament {
   winner: any;
 }
 
-export default function TournamentsPage() {
+function TournamentsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tournamentId = searchParams.get("id");
@@ -209,12 +210,17 @@ export default function TournamentsPage() {
         <nav className="border-b bg-white fixed w-full top-0 z-50" dir="rtl">
           <div className="container mx-auto px-3 sm:px-4 py-3 flex justify-between items-center">
             <Link href="/" className="flex items-center gap-1.5 sm:gap-2">
+              <div className="relative w-8 h-8 sm:w-9 sm:h-9">
+                <Image
+                  src="/icons/liviatan.png"
+                  alt="Leviathan Logo"
+                  fill
+                  className="object-contain"
+                />
+              </div>
               <span className="text-base sm:text-lg font-semibold text-gray-900">
                 פינג פונג לוויתן
               </span>
-              <div className="bg-blue-600 p-1 sm:p-1.5 rounded-md">
-                <Trophy className="w-4 h-4 sm:w-4 sm:h-4 text-white" />
-              </div>
             </Link>
             <div className="flex gap-2">
               <Link href="/login" className="hidden sm:block">
@@ -493,12 +499,17 @@ export default function TournamentsPage() {
       <nav className="border-b bg-white fixed w-full top-0 z-50" dir="rtl">
         <div className="container mx-auto px-3 sm:px-4 py-3 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-1.5 sm:gap-2">
+            <div className="relative w-8 h-8 sm:w-9 sm:h-9">
+              <Image
+                src="/icons/liviatan.png"
+                alt="Leviathan Logo"
+                fill
+                className="object-contain"
+              />
+            </div>
             <span className="text-base sm:text-lg font-semibold text-gray-900">
               פינג פונג לוויתן
             </span>
-            <div className="bg-blue-600 p-1 sm:p-1.5 rounded-md">
-              <Trophy className="w-4 h-4 sm:w-4 sm:h-4 text-white" />
-            </div>
           </Link>
           <div className="flex gap-2">
             <Link href="/login" className="hidden sm:block">
@@ -626,5 +637,19 @@ export default function TournamentsPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function TournamentsPageWrapper() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-gray-600">טוען...</div>
+        </div>
+      }
+    >
+      <TournamentsPage />
+    </Suspense>
   );
 }

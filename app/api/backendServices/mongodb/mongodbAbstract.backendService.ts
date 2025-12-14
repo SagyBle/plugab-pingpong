@@ -69,11 +69,12 @@ abstract class MongoDBAbstractService {
   // Generic CRUD methods
   public async create<T>(model: Model<T>, data: Partial<T>): Promise<T> {
     const document = new model(data);
-    return await document.save();
+    const saved = await document.save();
+    return saved.toObject() as T;
   }
 
   public async getById<T>(model: Model<T>, id: string): Promise<T | null> {
-    return await model.findById(id).lean();
+    return (await model.findById(id).lean()) as T | null;
   }
 
   public async getAll<T>(
@@ -95,7 +96,7 @@ abstract class MongoDBAbstractService {
       queryBuilder = queryBuilder.limit(options.limit);
     }
 
-    return await queryBuilder.lean();
+    return (await queryBuilder.lean()) as T[];
   }
 
   public async update<T>(
@@ -103,7 +104,7 @@ abstract class MongoDBAbstractService {
     id: string,
     data: Partial<T>
   ): Promise<T | null> {
-    return await model.findByIdAndUpdate(id, data, { new: true }).lean();
+    return (await model.findByIdAndUpdate(id, data, { new: true }).lean()) as T | null;
   }
 
   public async delete<T>(model: Model<T>, id: string): Promise<boolean> {

@@ -8,6 +8,7 @@ const publicRoutes = [
   "/tournaments",
   "/login",
   "/tournament/register",
+  "/tournament/groups",
   "/api/admin/login",
   "/api/tournaments/list",
   "/api/players/list",

@@ -36,7 +36,12 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(false);
 
   // Player form
-  const [playerForm, setPlayerForm] = useState({
+  const [playerForm, setPlayerForm] = useState<{
+    name: string;
+    email: string;
+    phoneNumber: string;
+    status: "ACTIVE" | "INACTIVE" | "BANNED";
+  }>({
     name: "",
     email: "",
     phoneNumber: "",
@@ -44,7 +49,17 @@ export default function DashboardPage() {
   });
 
   // Tournament form
-  const [tournamentForm, setTournamentForm] = useState({
+  const [tournamentForm, setTournamentForm] = useState<{
+    name: string;
+    description: string;
+    startDate: string;
+    endOfRegistration: string;
+    format: "league" | "knockout" | "mixed" | "groups";
+    maxPlayers: number;
+    location: string;
+    prizePool: string;
+    isPublished: boolean;
+  }>({
     name: "",
     description: "",
     startDate: "",
@@ -71,13 +86,13 @@ export default function DashboardPage() {
     try {
       if (activeTab === "players") {
         const response = await PlayerFrontendService.getPlayers();
-        if (response.success) {
-          setPlayers(response.data || []);
+        if (response.success && response.data) {
+          setPlayers(Array.isArray(response.data) ? response.data : []);
         }
       } else {
         const response = await TournamentFrontendService.getTournaments();
-        if (response.success) {
-          setTournaments(response.data || []);
+        if (response.success && response.data) {
+          setTournaments(Array.isArray(response.data) ? response.data : []);
         }
       }
     } catch (error) {
@@ -274,7 +289,7 @@ export default function DashboardPage() {
                           <Select
                             value={playerForm.status}
                             onValueChange={(value) =>
-                              setPlayerForm({ ...playerForm, status: value })
+                              setPlayerForm({ ...playerForm, status: value as "ACTIVE" | "INACTIVE" | "BANNED" })
                             }
                           >
                             <SelectTrigger>
@@ -349,7 +364,7 @@ export default function DashboardPage() {
                           <Select
                             value={tournamentForm.format}
                             onValueChange={(value) =>
-                              setTournamentForm({ ...tournamentForm, format: value })
+                              setTournamentForm({ ...tournamentForm, format: value as "league" | "knockout" | "mixed" | "groups" })
                             }
                           >
                             <SelectTrigger>

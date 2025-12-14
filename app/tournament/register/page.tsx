@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -52,7 +53,7 @@ interface Tournament {
   winner: any;
 }
 
-export default function RegisterPage() {
+function RegisterPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tournamentId = searchParams.get("id");
@@ -204,14 +205,19 @@ export default function RegisterPage() {
         {/* Navigation */}
         <nav className="border-b bg-white fixed w-full top-0 z-50" dir="rtl">
           <div className="container mx-auto px-3 sm:px-4 py-3 flex justify-between items-center">
-            <Link href="/" className="flex items-center gap-1.5 sm:gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="relative w-8 h-8 sm:w-9 sm:h-9">
+                <Image
+                  src="/icons/liviatan.png"
+                  alt="Leviathan Logo"
+                  fill
+                  className="object-contain"
+                />
+              </div>
               <span className="text-base sm:text-lg font-semibold text-gray-900">
                 פינג פונג לוויתן
               </span>
-              <div className="bg-blue-600 p-1 sm:p-1.5 rounded-md">
-                <Trophy className="w-4 h-4 text-white" />
-              </div>
-            </Link>
+            </div>
             <div className="flex gap-2">
               <Link href="/login" className="hidden sm:block">
                 <Button
@@ -228,7 +234,7 @@ export default function RegisterPage() {
         <main className="container mx-auto px-3 sm:px-4 pt-16 pb-8">
           <div className="max-w-3xl mx-auto">
             {/* Back Button */}
-            <Link href="/tournament/register">
+            {/* <Link href="/tournament/register">
               <Button
                 variant="ghost"
                 size="sm"
@@ -238,7 +244,7 @@ export default function RegisterPage() {
                 <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />
                 חזרה
               </Button>
-            </Link>
+            </Link> */}
 
             {loading ? (
               <div className="text-center py-12" dir="rtl">
@@ -499,12 +505,17 @@ export default function RegisterPage() {
       <nav className="border-b bg-white fixed w-full top-0 z-50" dir="rtl">
         <div className="container mx-auto px-3 sm:px-4 py-3 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-1.5 sm:gap-2">
+            <div className="relative w-8 h-8 sm:w-9 sm:h-9">
+              <Image
+                src="/icons/liviatan.png"
+                alt="Leviathan Logo"
+                fill
+                className="object-contain"
+              />
+            </div>
             <span className="text-base sm:text-lg font-semibold text-gray-900">
               פינג פונג לוויתן
             </span>
-            <div className="bg-blue-600 p-1 sm:p-1.5 rounded-md">
-              <Trophy className="w-4 h-4 text-white" />
-            </div>
           </Link>
           <div className="flex gap-2">
             <Link href="/login" className="hidden sm:block">
@@ -515,11 +526,11 @@ export default function RegisterPage() {
                 כניסת מנהל
               </Button>
             </Link>
-            <Link href="/tournament/register">
+            {/* <Link href="/tournament/register">
               <Button variant="ghost" size="sm" className="text-sm">
                 הרשמה
               </Button>
-            </Link>
+            </Link> */}
           </div>
         </div>
       </nav>
@@ -632,5 +643,19 @@ export default function RegisterPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function RegisterPageWrapper() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-gray-600">טוען...</div>
+        </div>
+      }
+    >
+      <RegisterPage />
+    </Suspense>
   );
 }

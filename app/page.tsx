@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Trophy, Users, Calendar, Zap, Award, TrendingUp } from "lucide-react";
 
@@ -9,8 +10,13 @@ export default function Home() {
       <nav className="border-b bg-white/90 backdrop-blur-md fixed w-full top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-2 rounded-lg group-hover:scale-110 transition-transform">
-              <Trophy className="w-6 h-6 text-white" />
+            <div className="relative w-10 h-10 group-hover:scale-110 transition-transform">
+              <Image
+                src="/icons/liviatan.png"
+                alt="Leviathan Logo"
+                fill
+                className="object-contain"
+              />
             </div>
             <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               Plugab Ping-Pong
@@ -38,8 +44,13 @@ export default function Home() {
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-32 h-32 bg-blue-400/20 rounded-full blur-3xl"></div>
             </div>
-            <div className="relative bg-gradient-to-br from-blue-600 to-indigo-600 w-24 h-24 mx-auto rounded-2xl flex items-center justify-center shadow-xl shadow-blue-500/30 animate-bounce">
-              <Trophy className="w-14 h-14 text-white" />
+            <div className="relative w-24 h-24 mx-auto animate-bounce">
+              <Image
+                src="/icons/liviatan.png"
+                alt="Leviathan Logo"
+                fill
+                className="object-contain"
+              />
             </div>
           </div>
           <h1 className="text-6xl md:text-7xl font-extrabold mb-6 text-gray-900 leading-tight">
@@ -154,8 +165,13 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center gap-2 mb-4 md:mb-0">
-              <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-2 rounded-lg">
-                <Trophy className="w-5 h-5 text-white" />
+              <div className="relative w-8 h-8">
+                <Image
+                  src="/icons/liviatan.png"
+                  alt="Leviathan Logo"
+                  fill
+                  className="object-contain"
+                />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 Plugab Ping-Pong
