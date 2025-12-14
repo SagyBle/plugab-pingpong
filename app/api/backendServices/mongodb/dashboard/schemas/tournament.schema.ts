@@ -7,6 +7,7 @@ export interface Tournament extends MongoDocument {
   startDate: Date;
   endOfRegistration: Date;
   players: Types.ObjectId[];
+  groups: Types.ObjectId[];
   matches: Types.ObjectId[];
   format: "league" | "knockout" | "mixed" | "groups";
   winner: Types.ObjectId | null;
@@ -25,6 +26,7 @@ export const TournamentSchema = new Schema<Tournament>(
     startDate: { type: Date, required: true },
     endOfRegistration: { type: Date, required: true },
     players: [{ type: Schema.Types.ObjectId, ref: "Player", default: [] }],
+    groups: [{ type: Schema.Types.ObjectId, ref: "Group", default: [] }],
     matches: [{ type: Schema.Types.ObjectId, ref: "Match", default: [] }],
     format: {
       type: String,

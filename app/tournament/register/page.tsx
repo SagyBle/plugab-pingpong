@@ -275,6 +275,21 @@ function RegisterPage() {
                       <p className="text-sm sm:text-base text-gray-600 text-right">
                         {selectedTournament.description}
                       </p>
+                      {selectedTournament.players &&
+                        selectedTournament.players.length > 0 && (
+                          <Link
+                            href={`/tournament/stages/groups?tournamentId=${selectedTournament._id}`}
+                          >
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="mt-3 text-sm"
+                            >
+                              <Target className="w-4 h-4 ml-1.5" />
+                              נהל קבוצות
+                            </Button>
+                          </Link>
+                        )}
                     </div>
                     <div className="hidden sm:flex bg-blue-50 p-3 rounded-lg">
                       <Trophy className="w-7 h-7 text-blue-600" />

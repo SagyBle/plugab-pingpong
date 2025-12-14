@@ -9,6 +9,7 @@ const publicRoutes = [
   "/login",
   "/tournament/register",
   "/tournament/groups",
+  "/tournament/stages/groups",
   "/api/admin/login",
   "/api/tournaments/list",
   "/api/players/list",
@@ -16,6 +17,9 @@ const publicRoutes = [
   "/api/players/bulk-create",
   "/api/players/fetch",
   "/api/tournaments/create",
+  "/api/groups/create",
+  "/api/groups/list",
+  "/api/groups/delete",
 ];
 
 const adminOnlyRoutes = ["/api/admin/signup"];
@@ -104,6 +108,7 @@ async function handleProtectedAppRoute(request: NextRequest, pathname: string) {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  console.log("sagy11", pathname);
 
   // Skip static files and Next.js internals
   if (

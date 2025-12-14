@@ -5,6 +5,7 @@ import type { Player } from "./schemas/player.schema";
 import type { Tournament } from "./schemas/tournament.schema";
 import type { Match } from "./schemas/match.schema";
 import type { Admin } from "./schemas/admin.schema";
+import type { Group } from "./schemas/group.schema";
 
 class DashboardMongoDBService extends MongoDBAbstractService {
   private static instance: DashboardMongoDBService;
@@ -50,6 +51,10 @@ class DashboardMongoDBService extends MongoDBAbstractService {
 
   get Admin(): Model<Admin> {
     return this.getModel<Admin>("Admin");
+  }
+
+  get Group(): Model<Group> {
+    return this.getModel<Group>("Group");
   }
 
   // Convenience methods for Players
@@ -110,6 +115,45 @@ class DashboardMongoDBService extends MongoDBAbstractService {
 
   public async findAdminByEmail(email: string) {
     return this.Admin.findOne({ email }).lean();
+  }
+
+  // Convenience methods for Groups
+  public async createGroup(
+    data: Omit<Group, "_id" | "createdAt" | "updatedAt">
+  ) {
+    return this.create<Group>(this.Group, data);
+  }
+
+  public async getGroupsByTournament(tournamentId: string) {
+    return this.Group.find({ tournament: tournamentId })
+      .populate("tournament", "name status")
+      .populate({
+        path: "players.player",
+        select: "name phoneNumber status",
+      })
+      .populate({
+        path: "standings.player",
+        select: "name phoneNumber status",
+      })
+      .populate("matches")
+      .populate("advancingPlayers", "name phoneNumber")
+      .lean();
+  }
+
+  public async getGroupById(id: string) {
+    return this.Group.findById(id)
+      .populate("tournament", "name status")
+      .populate({
+        path: "players.player",
+        select: "name phoneNumber status",
+      })
+      .populate({
+        path: "standings.player",
+        select: "name phoneNumber status",
+      })
+      .populate("matches")
+      .populate("advancingPlayers", "name phoneNumber")
+      .lean();
   }
 }
 

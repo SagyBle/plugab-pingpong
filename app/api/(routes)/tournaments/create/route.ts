@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
       startDate: new Date(startDate),
       endOfRegistration: new Date(endOfRegistration),
       players: [],
+      groups: [],
       matches: [],
       format,
       winner: null,

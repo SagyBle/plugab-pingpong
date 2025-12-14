@@ -3,6 +3,7 @@ import type { MongoDocument } from "../../mongodbAbstract.backendService";
 
 export interface Match extends MongoDocument {
   tournament: Types.ObjectId;
+  group: Types.ObjectId | null;
   player1: Types.ObjectId;
   player2: Types.ObjectId;
   player1Score: number;
@@ -15,7 +16,12 @@ export interface Match extends MongoDocument {
 
 export const MatchSchema = new Schema<Match>(
   {
-    tournament: { type: Schema.Types.ObjectId, ref: "Tournament", required: true },
+    tournament: {
+      type: Schema.Types.ObjectId,
+      ref: "Tournament",
+      required: true,
+    },
+    group: { type: Schema.Types.ObjectId, ref: "Group", default: null },
     player1: { type: Schema.Types.ObjectId, ref: "Player", required: true },
     player2: { type: Schema.Types.ObjectId, ref: "Player", required: true },
     player1Score: { type: Number, default: 0 },
@@ -34,5 +40,5 @@ export const MatchSchema = new Schema<Match>(
 
 // Indexes
 MatchSchema.index({ tournament: 1 });
+MatchSchema.index({ group: 1 });
 MatchSchema.index({ status: 1 });
-

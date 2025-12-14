@@ -18,7 +18,10 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!tournament || !player1 || !player2) {
-      return BackendApiService.errorResponse("Tournament, player1, and player2 are required", 400);
+      return BackendApiService.errorResponse(
+        "Tournament, player1, and player2 are required",
+        400
+      );
     }
 
     const mongoService = await DashboardMongoDBService.getInstance();
@@ -34,6 +37,7 @@ export async function POST(request: NextRequest) {
       textNotes: textNotes || "",
       image: image || "",
       status: status || "SCHEDULED",
+      group: null,
     });
 
     // Add match to tournament's matches array
@@ -41,9 +45,11 @@ export async function POST(request: NextRequest) {
       $push: { matches: match._id },
     });
 
-    return BackendApiService.successResponse(match, "Match created successfully");
+    return BackendApiService.successResponse(
+      match,
+      "Match created successfully"
+    );
   } catch (error) {
     return BackendApiService.handleError(error);
   }
 }
-
