@@ -361,11 +361,6 @@ function TournamentsPage() {
                                 <p className="font-medium text-sm truncate">
                                   {player.name}
                                 </p>
-                                {player.email && (
-                                  <p className="text-xs text-gray-500 truncate">
-                                    {player.email}
-                                  </p>
-                                )}
                               </div>
                               <div className="bg-blue-100 p-1.5 rounded-full flex-shrink-0">
                                 <Users className="w-3.5 h-3.5 text-blue-600" />

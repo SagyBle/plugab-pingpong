@@ -22,14 +22,17 @@ abstract class MongoDBAbstractService {
     }
 
     const uri = this.getUri();
-    
+
     if (!uri) {
       throw new Error("MongoDB URI is not defined");
     }
 
     // Check for cached connection
     const globalWithMongoose = global as typeof globalThis & {
-      mongoose: { conn: Connection | null; promise: Promise<Connection> | null };
+      mongoose: {
+        conn: Connection | null;
+        promise: Promise<Connection> | null;
+      };
     };
 
     if (!globalWithMongoose.mongoose) {
@@ -42,7 +45,9 @@ abstract class MongoDBAbstractService {
     }
 
     if (!globalWithMongoose.mongoose.promise) {
-      globalWithMongoose.mongoose.promise = mongoose.createConnection(uri).asPromise();
+      globalWithMongoose.mongoose.promise = mongoose
+        .createConnection(uri)
+        .asPromise();
     }
 
     this.conn = await globalWithMongoose.mongoose.promise;
@@ -104,7 +109,9 @@ abstract class MongoDBAbstractService {
     id: string,
     data: Partial<T>
   ): Promise<T | null> {
-    return (await model.findByIdAndUpdate(id, data, { new: true }).lean()) as T | null;
+    return (await model
+      .findByIdAndUpdate(id, data, { new: true })
+      .lean()) as T | null;
   }
 
   public async delete<T>(model: Model<T>, id: string): Promise<boolean> {
@@ -118,4 +125,3 @@ abstract class MongoDBAbstractService {
 }
 
 export default MongoDBAbstractService;
-

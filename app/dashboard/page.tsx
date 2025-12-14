@@ -3,7 +3,13 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,7 +36,9 @@ import { LogOut, Users, Trophy, Plus, Trash2, Edit } from "lucide-react";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"players" | "tournaments">("tournaments");
+  const [activeTab, setActiveTab] = useState<"players" | "tournaments">(
+    "tournaments"
+  );
   const [players, setPlayers] = useState<any[]>([]);
   const [tournaments, setTournaments] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -115,7 +123,12 @@ export default function DashboardPage() {
       if (response.success) {
         toast.success("Player created successfully");
         setDialogOpen(false);
-        setPlayerForm({ name: "", email: "", phoneNumber: "", status: "INACTIVE" });
+        setPlayerForm({
+          name: "",
+          email: "",
+          phoneNumber: "",
+          status: "INACTIVE",
+        });
         fetchData();
       } else {
         toast.error(response.error || "Failed to create player");
@@ -128,7 +141,9 @@ export default function DashboardPage() {
   const handleCreateTournament = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await TournamentFrontendService.createTournament(tournamentForm);
+      const response = await TournamentFrontendService.createTournament(
+        tournamentForm
+      );
       if (response.success) {
         toast.success("Tournament created successfully");
         setDialogOpen(false);
@@ -222,7 +237,9 @@ export default function DashboardPage() {
               <div className="flex justify-between items-center">
                 <div>
                   <CardTitle>
-                    {activeTab === "players" ? "Players Management" : "Tournaments Management"}
+                    {activeTab === "players"
+                      ? "Players Management"
+                      : "Tournaments Management"}
                   </CardTitle>
                   <CardDescription>
                     {activeTab === "players"
@@ -240,7 +257,8 @@ export default function DashboardPage() {
                   <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>
-                        Create New {activeTab === "players" ? "Player" : "Tournament"}
+                        Create New{" "}
+                        {activeTab === "players" ? "Player" : "Tournament"}
                       </DialogTitle>
                       <DialogDescription>
                         Fill in the details below to create a new{" "}
@@ -256,7 +274,10 @@ export default function DashboardPage() {
                             id="name"
                             value={playerForm.name}
                             onChange={(e) =>
-                              setPlayerForm({ ...playerForm, name: e.target.value })
+                              setPlayerForm({
+                                ...playerForm,
+                                name: e.target.value,
+                              })
                             }
                             required
                           />
@@ -268,7 +289,10 @@ export default function DashboardPage() {
                             type="email"
                             value={playerForm.email}
                             onChange={(e) =>
-                              setPlayerForm({ ...playerForm, email: e.target.value })
+                              setPlayerForm({
+                                ...playerForm,
+                                email: e.target.value,
+                              })
                             }
                             required
                           />
@@ -279,7 +303,10 @@ export default function DashboardPage() {
                             id="phoneNumber"
                             value={playerForm.phoneNumber}
                             onChange={(e) =>
-                              setPlayerForm({ ...playerForm, phoneNumber: e.target.value })
+                              setPlayerForm({
+                                ...playerForm,
+                                phoneNumber: e.target.value,
+                              })
                             }
                             required
                           />
@@ -289,7 +316,13 @@ export default function DashboardPage() {
                           <Select
                             value={playerForm.status}
                             onValueChange={(value) =>
-                              setPlayerForm({ ...playerForm, status: value as "ACTIVE" | "INACTIVE" | "BANNED" })
+                              setPlayerForm({
+                                ...playerForm,
+                                status: value as
+                                  | "ACTIVE"
+                                  | "INACTIVE"
+                                  | "BANNED",
+                              })
                             }
                           >
                             <SelectTrigger>
@@ -307,14 +340,20 @@ export default function DashboardPage() {
                         </Button>
                       </form>
                     ) : (
-                      <form onSubmit={handleCreateTournament} className="space-y-4">
+                      <form
+                        onSubmit={handleCreateTournament}
+                        className="space-y-4"
+                      >
                         <div className="space-y-2">
                           <Label htmlFor="tournamentName">Name *</Label>
                           <Input
                             id="tournamentName"
                             value={tournamentForm.name}
                             onChange={(e) =>
-                              setTournamentForm({ ...tournamentForm, name: e.target.value })
+                              setTournamentForm({
+                                ...tournamentForm,
+                                name: e.target.value,
+                              })
                             }
                             required
                           />
@@ -325,7 +364,10 @@ export default function DashboardPage() {
                             id="description"
                             value={tournamentForm.description}
                             onChange={(e) =>
-                              setTournamentForm({ ...tournamentForm, description: e.target.value })
+                              setTournamentForm({
+                                ...tournamentForm,
+                                description: e.target.value,
+                              })
                             }
                             required
                           />
@@ -338,13 +380,18 @@ export default function DashboardPage() {
                               type="datetime-local"
                               value={tournamentForm.startDate}
                               onChange={(e) =>
-                                setTournamentForm({ ...tournamentForm, startDate: e.target.value })
+                                setTournamentForm({
+                                  ...tournamentForm,
+                                  startDate: e.target.value,
+                                })
                               }
                               required
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="endOfRegistration">Registration End *</Label>
+                            <Label htmlFor="endOfRegistration">
+                              Registration End *
+                            </Label>
                             <Input
                               id="endOfRegistration"
                               type="datetime-local"
@@ -364,7 +411,14 @@ export default function DashboardPage() {
                           <Select
                             value={tournamentForm.format}
                             onValueChange={(value) =>
-                              setTournamentForm({ ...tournamentForm, format: value as "league" | "knockout" | "mixed" | "groups" })
+                              setTournamentForm({
+                                ...tournamentForm,
+                                format: value as
+                                  | "league"
+                                  | "knockout"
+                                  | "mixed"
+                                  | "groups",
+                              })
                             }
                           >
                             <SelectTrigger>
@@ -399,7 +453,10 @@ export default function DashboardPage() {
                               id="location"
                               value={tournamentForm.location}
                               onChange={(e) =>
-                                setTournamentForm({ ...tournamentForm, location: e.target.value })
+                                setTournamentForm({
+                                  ...tournamentForm,
+                                  location: e.target.value,
+                                })
                               }
                             />
                           </div>
@@ -410,7 +467,10 @@ export default function DashboardPage() {
                             id="prizePool"
                             value={tournamentForm.prizePool}
                             onChange={(e) =>
-                              setTournamentForm({ ...tournamentForm, prizePool: e.target.value })
+                              setTournamentForm({
+                                ...tournamentForm,
+                                prizePool: e.target.value,
+                              })
                             }
                           />
                         </div>
@@ -427,7 +487,9 @@ export default function DashboardPage() {
                             }
                             className="w-4 h-4"
                           />
-                          <Label htmlFor="isPublished">Publish Tournament</Label>
+                          <Label htmlFor="isPublished">
+                            Publish Tournament
+                          </Label>
                         </div>
                         <Button type="submit" className="w-full">
                           Create Tournament
@@ -444,7 +506,9 @@ export default function DashboardPage() {
               ) : activeTab === "players" ? (
                 <div className="space-y-2">
                   {players.length === 0 ? (
-                    <p className="text-center py-8 text-gray-600">No players found</p>
+                    <p className="text-center py-8 text-gray-600">
+                      No players found
+                    </p>
                   ) : (
                     players.map((player) => (
                       <div
@@ -453,8 +517,12 @@ export default function DashboardPage() {
                       >
                         <div>
                           <p className="font-medium">{player.name}</p>
-                          <p className="text-sm text-gray-600">{player.email}</p>
-                          <p className="text-xs text-gray-500">{player.phoneNumber}</p>
+                          <p className="text-sm text-gray-600">
+                            {player.email}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {player.phoneNumber}
+                          </p>
                         </div>
                         <div className="flex items-center gap-2">
                           <span
@@ -483,7 +551,9 @@ export default function DashboardPage() {
               ) : (
                 <div className="space-y-2">
                   {tournaments.length === 0 ? (
-                    <p className="text-center py-8 text-gray-600">No tournaments found</p>
+                    <p className="text-center py-8 text-gray-600">
+                      No tournaments found
+                    </p>
                   ) : (
                     tournaments.map((tournament) => (
                       <div
@@ -496,8 +566,10 @@ export default function DashboardPage() {
                             {tournament.description}
                           </p>
                           <p className="text-xs text-gray-500">
-                            {new Date(tournament.startDate).toLocaleDateString()} •{" "}
-                            {tournament.format.toUpperCase()}
+                            {new Date(
+                              tournament.startDate
+                            ).toLocaleDateString()}{" "}
+                            • {tournament.format.toUpperCase()}
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -513,7 +585,9 @@ export default function DashboardPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleDeleteTournament(tournament._id)}
+                            onClick={() =>
+                              handleDeleteTournament(tournament._id)
+                            }
                           >
                             <Trash2 className="w-4 h-4 text-red-600" />
                           </Button>
@@ -530,4 +604,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-

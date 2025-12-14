@@ -328,9 +328,6 @@ function RegisterPage() {
                                       <p className="font-medium text-gray-900 text-sm truncate">
                                         {player.name}
                                       </p>
-                                      <p className="text-xs text-gray-500 truncate">
-                                        {player.email}
-                                      </p>
                                     </div>
                                     <div className="bg-blue-50 w-7 h-7 rounded-full flex items-center justify-center">
                                       <UserPlus className="w-3.5 h-3.5 text-blue-600" />
@@ -365,11 +362,6 @@ function RegisterPage() {
                                 <p className="font-medium text-sm truncate">
                                   {player.name}
                                 </p>
-                                {player.email && (
-                                  <p className="text-xs text-gray-500 truncate">
-                                    {player.email}
-                                  </p>
-                                )}
                               </div>
                               <div className="bg-blue-100 p-1.5 rounded-full flex-shrink-0">
                                 <Users className="w-3.5 h-3.5 text-blue-600" />
@@ -415,9 +407,6 @@ function RegisterPage() {
                         <div className="bg-gray-50 rounded-lg p-3 border">
                           <p className="font-semibold text-base mb-1 text-right">
                             {selectedPlayer.name}
-                          </p>
-                          <p className="text-sm text-gray-600 text-right">
-                            {selectedPlayer.email}
                           </p>
                           {selectedPlayer.phoneNumber && (
                             <p className="text-sm text-gray-600 text-right">
