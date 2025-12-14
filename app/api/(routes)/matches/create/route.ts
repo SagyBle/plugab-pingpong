@@ -38,6 +38,10 @@ export async function POST(request: NextRequest) {
       image: image || "",
       status: status || "SCHEDULED",
       group: null,
+      round: null,
+      roundName: null,
+      nextMatchId: null,
+      bracketPosition: null,
     });
 
     // Add match to tournament's matches array

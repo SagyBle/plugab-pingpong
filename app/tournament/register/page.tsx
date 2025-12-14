@@ -277,18 +277,35 @@ function RegisterPage() {
                       </p>
                       {selectedTournament.players &&
                         selectedTournament.players.length > 0 && (
-                          <Link
-                            href={`/tournament/stages/groups?tournamentId=${selectedTournament._id}`}
-                          >
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="mt-3 text-sm"
+                          <div className="flex gap-2 mt-3">
+                            {process.env.NEXT_PUBLIC_IS_ADMIN_MODE ===
+                              "true" && (
+                              <Link
+                                href={`/tournament/stages/groups?tournamentId=${selectedTournament._id}`}
+                              >
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-sm"
+                                >
+                                  <Target className="w-4 h-4 ml-1.5" />
+                                  נהל קבוצות
+                                </Button>
+                              </Link>
+                            )}
+                            <Link
+                              href={`/tournament/stages/knockout?tournamentId=${selectedTournament._id}`}
                             >
-                              <Target className="w-4 h-4 ml-1.5" />
-                              נהל קבוצות
-                            </Button>
-                          </Link>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-sm"
+                              >
+                                <Trophy className="w-4 h-4 ml-1.5" />
+                                לחץ כאן כדי לראות את המשחקים!
+                              </Button>
+                            </Link>
+                          </div>
                         )}
                     </div>
                     <div className="hidden sm:flex bg-blue-50 p-3 rounded-lg">
@@ -573,7 +590,10 @@ function RegisterPage() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
+              dir="rtl"
+            >
               {tournaments.map((tournament) => (
                 <Card
                   key={tournament._id}

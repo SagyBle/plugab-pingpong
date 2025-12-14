@@ -87,7 +87,9 @@ export async function POST(request: NextRequest) {
     });
 
     // Fetch groups with populated player data
-    const populatedGroups = await mongoService.getGroupsByTournament(tournamentId);
+    const populatedGroups = await mongoService.getGroupsByTournament(
+      tournamentId
+    );
 
     return BackendApiService.successResponse(
       populatedGroups,

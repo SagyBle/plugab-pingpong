@@ -10,6 +10,7 @@ const publicRoutes = [
   "/tournament/register",
   "/tournament/groups",
   "/tournament/stages/groups",
+  "/tournament/stages/knockout",
   "/api/admin/login",
   "/api/tournaments/list",
   "/api/players/list",
@@ -21,6 +22,11 @@ const publicRoutes = [
   "/api/groups/list",
   "/api/groups/delete",
   "/api/groups/create-matches",
+  "/api/knockout/create-bracket",
+  "/api/knockout/list",
+  "/api/knockout/delete",
+  "/api/matches/update-score",
+  "/api/knockout/create-next-round",
 ];
 
 const adminOnlyRoutes = ["/api/admin/signup"];

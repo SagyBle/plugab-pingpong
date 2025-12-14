@@ -49,6 +49,10 @@ export async function POST(request: NextRequest) {
           image: "",
           status: "SCHEDULED",
           group: groupId,
+          round: null,
+          roundName: null,
+          nextMatchId: null,
+          bracketPosition: null,
         });
         matchIds.push(match._id);
       }
@@ -71,4 +75,3 @@ export async function POST(request: NextRequest) {
     return BackendApiService.handleError(error);
   }
 }
-

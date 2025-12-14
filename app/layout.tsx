@@ -6,8 +6,8 @@ import { Toaster } from "sonner";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Plugab Ping-Pong Tournament Platform",
-  description: "Register for ping-pong tournaments and track your matches",
+  title: "טורניר הפינג פונג פלוגה ב׳",
+  description: "הרשמו לטורנירים ועקבו אחרי המשחקים שלכם",
 };
 
 export default function RootLayout({
