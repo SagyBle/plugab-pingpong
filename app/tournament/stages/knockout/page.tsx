@@ -80,6 +80,12 @@ function KnockoutPage() {
   const [updatingScore, setUpdatingScore] = useState(false);
   const [creatingNextRound, setCreatingNextRound] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [timeRemaining, setTimeRemaining] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
 
   useEffect(() => {
     if (tournamentId) {
@@ -89,6 +95,35 @@ function KnockoutPage() {
       setLoading(false);
     }
   }, [tournamentId]);
+
+  // Countdown timer effect
+  useEffect(() => {
+    const deadline = new Date("2025-12-16T18:00:00").getTime();
+
+    const updateCountdown = () => {
+      const now = new Date().getTime();
+      const distance = deadline - now;
+
+      if (distance < 0) {
+        setTimeRemaining({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        return;
+      }
+
+      setTimeRemaining({
+        days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+        hours: Math.floor(
+          (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+        ),
+        minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
+        seconds: Math.floor((distance % (1000 * 60)) / 1000),
+      });
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const fetchTournament = async () => {
     try {
@@ -388,6 +423,43 @@ function KnockoutPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Countdown Timer */}
+              {allMatches.length > 0 && (
+                <Card className="border mb-4 bg-gradient-to-r from-orange-50 to-red-50 border-orange-200">
+                  <CardContent className="py-4" dir="rtl">
+                    <div className="text-center">
+                      <p className="text-sm font-semibold text-orange-800 mb-2">
+                        ⏰ זמן נותר לסיום כל המשחקים
+                      </p>
+                      <div className="flex justify-center gap-3 mb-2" dir="ltr">
+                        <div className="bg-white rounded-lg p-2 min-w-[60px] shadow-sm">
+                          <div className="text-2xl font-bold text-orange-600">
+                            {timeRemaining.hours}
+                          </div>
+                          <div className="text-xs text-gray-600">שעות</div>
+                        </div>
+                        <div className="bg-white rounded-lg p-2 min-w-[60px] shadow-sm">
+                          <div className="text-2xl font-bold text-orange-600">
+                            {timeRemaining.minutes}
+                          </div>
+                          <div className="text-xs text-gray-600">דקות</div>
+                        </div>
+                        <div className="bg-white rounded-lg p-2 min-w-[60px] shadow-sm">
+                          <div className="text-2xl font-bold text-orange-600">
+                            {timeRemaining.seconds}
+                          </div>
+                          <div className="text-xs text-gray-600">שניות</div>
+                        </div>
+                      </div>
+                      <p className="text-sm text-orange-700">
+                        יש לסיים את כל המשחקים עד יום שלישי, 16/12/2025 בשעה
+                        18:00
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Controls */}
               {allMatches.length === 0 ? (
