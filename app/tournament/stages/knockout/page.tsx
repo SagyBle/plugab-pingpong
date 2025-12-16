@@ -86,6 +86,14 @@ function KnockoutPage() {
     minutes: 0,
     seconds: 0,
   });
+  const [showAddMatchDialog, setShowAddMatchDialog] = useState(false);
+  const [selectedRound, setSelectedRound] = useState<{
+    round: number;
+    roundName: string;
+  } | null>(null);
+  const [selectedPlayer1, setSelectedPlayer1] = useState<string>("");
+  const [selectedPlayer2, setSelectedPlayer2] = useState<string>("");
+  const [creatingMatch, setCreatingMatch] = useState(false);
 
   useEffect(() => {
     if (tournamentId) {
@@ -250,6 +258,61 @@ function KnockoutPage() {
     } finally {
       setCreatingNextRound(false);
     }
+  };
+
+  const handleOpenAddMatchDialog = (round: number, roundName: string) => {
+    setSelectedRound({ round, roundName });
+    setSelectedPlayer1("");
+    setSelectedPlayer2("");
+    setShowAddMatchDialog(true);
+  };
+
+  const handleCreateCustomMatch = async () => {
+    if (!selectedPlayer1 || !selectedPlayer2 || !selectedRound) {
+      toast.error("יש לבחור שני שחקנים");
+      return;
+    }
+
+    if (selectedPlayer1 === selectedPlayer2) {
+      toast.error("לא ניתן ליצור משחק עם אותו שחקן");
+      return;
+    }
+
+    setCreatingMatch(true);
+    try {
+      const response = await MatchFrontendService.createCustomMatch({
+        tournamentId: tournamentId!,
+        player1Id: selectedPlayer1,
+        player2Id: selectedPlayer2,
+        round: selectedRound.round,
+        roundName: selectedRound.roundName,
+      });
+
+      if (response.success) {
+        toast.success("המשחק נוסף בהצלחה!");
+        await fetchKnockoutMatches();
+        setShowAddMatchDialog(false);
+      } else {
+        toast.error(response.error || "נכשל ביצירת משחק");
+      }
+    } catch (error) {
+      toast.error("אירעה שגיאה");
+    } finally {
+      setCreatingMatch(false);
+    }
+  };
+
+  // Get available players for custom match (not in the selected round)
+  const getAvailablePlayers = () => {
+    if (!selectedRound || !tournament?.players) return [];
+
+    const playersInRound = (matchesByRound[selectedRound.round] || []).flatMap(
+      (match) => [match.player1?._id, match.player2?._id].filter(Boolean)
+    );
+
+    return tournament.players.filter(
+      (player: any) => !playersInRound.includes(player._id)
+    );
   };
 
   // Filter matches based on search query
@@ -785,6 +848,24 @@ function KnockoutPage() {
                                 </Card>
                               ))}
                             </div>
+                            {process.env.NEXT_PUBLIC_IS_ADMIN_MODE ===
+                              "true" && (
+                              <div className="mt-4 text-center">
+                                <Button
+                                  onClick={() =>
+                                    handleOpenAddMatchDialog(
+                                      roundNum,
+                                      roundName
+                                    )
+                                  }
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-xs"
+                                >
+                                  + הוסף משחק לסיבוב זה
+                                </Button>
+                              </div>
+                            )}
                           </div>
                         );
                       })
@@ -829,6 +910,95 @@ function KnockoutPage() {
                       size="sm"
                     >
                       {deleting ? "מוחק..." : "כן, מחק ברקט"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {/* Add Custom Match Dialog */}
+              <Dialog
+                open={showAddMatchDialog}
+                onOpenChange={setShowAddMatchDialog}
+              >
+                <DialogContent
+                  className="w-[calc(100%-2rem)] sm:max-w-md"
+                  dir="rtl"
+                >
+                  <DialogHeader>
+                    <DialogTitle className="text-base text-right">
+                      הוסף משחק ל{selectedRound?.roundName}
+                    </DialogTitle>
+                    <DialogDescription className="text-sm text-right">
+                      בחר שני שחקנים שאינם במשחק אחר בסיבוב זה
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4" dir="rtl">
+                    {/* Player 1 Selection */}
+                    <div className="space-y-2">
+                      <Label htmlFor="player1" className="text-right block">
+                        שחקן 1
+                      </Label>
+                      <select
+                        id="player1"
+                        value={selectedPlayer1}
+                        onChange={(e) => setSelectedPlayer1(e.target.value)}
+                        className="w-full p-2 border rounded-md text-right"
+                        dir="rtl"
+                      >
+                        <option value="">בחר שחקן...</option>
+                        {getAvailablePlayers().map((player: any) => (
+                          <option key={player._id} value={player._id}>
+                            {player.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Player 2 Selection */}
+                    <div className="space-y-2">
+                      <Label htmlFor="player2" className="text-right block">
+                        שחקן 2
+                      </Label>
+                      <select
+                        id="player2"
+                        value={selectedPlayer2}
+                        onChange={(e) => setSelectedPlayer2(e.target.value)}
+                        className="w-full p-2 border rounded-md text-right"
+                        dir="rtl"
+                      >
+                        <option value="">בחר שחקן...</option>
+                        {getAvailablePlayers()
+                          .filter((p: any) => p._id !== selectedPlayer1)
+                          .map((player: any) => (
+                            <option key={player._id} value={player._id}>
+                              {player.name}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                  </div>
+                  <DialogFooter className="flex-col-reverse sm:flex-row gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowAddMatchDialog(false)}
+                      disabled={creatingMatch}
+                      className="w-full sm:w-auto"
+                      size="sm"
+                    >
+                      ביטול
+                    </Button>
+                    <Button
+                      onClick={handleCreateCustomMatch}
+                      disabled={
+                        creatingMatch ||
+                        !selectedPlayer1 ||
+                        !selectedPlayer2 ||
+                        selectedPlayer1 === selectedPlayer2
+                      }
+                      className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700"
+                      size="sm"
+                    >
+                      {creatingMatch ? "יוצר משחק..." : "צור משחק"}
                     </Button>
                   </DialogFooter>
                 </DialogContent>

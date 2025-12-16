@@ -27,6 +27,7 @@ const publicRoutes = [
   "/api/knockout/delete",
   "/api/matches/update-score",
   "/api/knockout/create-next-round",
+  "/api/matches/create-custom",
 ];
 
 const adminOnlyRoutes = ["/api/admin/signup"];
