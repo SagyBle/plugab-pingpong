@@ -337,7 +337,7 @@ function KnockoutPage() {
 
     setTogglingCancel(true);
     try {
-      const response = await MatchFrontendService.toggleCancelled({
+      const response: any = await MatchFrontendService.toggleCancelled({
         matchId: matchToCancel._id,
         cancelled: isCancelling,
       });
