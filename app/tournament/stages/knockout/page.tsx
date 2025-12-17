@@ -254,8 +254,9 @@ function KnockoutPage() {
         toast.success("השלב הבא נוצר בהצלחה!");
 
         // Show warning if there's a player without opponent
-        if (response.data?.warning) {
-          toast.warning(response.data.warning, { duration: 6000 });
+        const data = response.data as any;
+        if (data?.warning) {
+          toast.warning(data.warning, { duration: 6000 });
         }
 
         await fetchKnockoutMatches();
