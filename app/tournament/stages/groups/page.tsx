@@ -341,90 +341,92 @@ function GroupsPage() {
               </div>
 
               {/* Controls */}
-              <Card className="border mb-6">
-                <CardHeader className="pb-3" dir="rtl">
-                  <CardTitle className="text-lg text-right">
-                    יצירת קבוצות
-                  </CardTitle>
-                  <CardDescription className="text-sm text-right">
-                    הגדר כמה שחקנים בכל קבוצה וצור קבוצות באופן אקראי
-                  </CardDescription>
-                </CardHeader>
-                <CardContent dir="rtl">
-                  <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
-                    <div className="w-full sm:w-40">
-                      <Label
-                        htmlFor="playersPerGroup"
-                        className="text-right block mb-1.5"
-                      >
-                        שחקנים לקבוצה
-                      </Label>
-                      <Input
-                        id="playersPerGroup"
-                        type="number"
-                        min="2"
-                        max="10"
-                        value={playersPerGroup}
-                        onChange={(e) =>
-                          setPlayersPerGroup(Number(e.target.value))
-                        }
-                        className="text-center"
-                        dir="rtl"
-                      />
-                    </div>
-                    <div className="flex gap-2 w-full sm:w-auto">
-                      <Button
-                        onClick={handleGenerateGroups}
-                        disabled={generating || !tournament?.players?.length}
-                        className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700"
-                        size="sm"
-                      >
-                        {generating ? (
-                          <span className="flex items-center gap-2">
-                            <svg
-                              className="animate-spin h-3.5 w-3.5"
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                            >
-                              <circle
-                                className="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                strokeWidth="4"
-                              ></circle>
-                              <path
-                                className="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                              ></path>
-                            </svg>
-                            יוצר...
-                          </span>
-                        ) : (
-                          <span className="flex items-center gap-2">
-                            צור קבוצות
-                            <Shuffle className="w-3.5 h-3.5" />
-                          </span>
-                        )}
-                      </Button>
-                      {groups.length > 0 && (
-                        <Button
-                          onClick={() => setShowDeleteDialog(true)}
-                          variant="destructive"
-                          size="sm"
-                          className="flex-1 sm:flex-none"
+              {process.env.NEXT_PUBLIC_IS_ADMIN_MODE === "true" && (
+                <Card className="border mb-6">
+                  <CardHeader className="pb-3" dir="rtl">
+                    <CardTitle className="text-lg text-right">
+                      יצירת קבוצות
+                    </CardTitle>
+                    <CardDescription className="text-sm text-right">
+                      הגדר כמה שחקנים בכל קבוצה וצור קבוצות באופן אקראי
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent dir="rtl">
+                    <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
+                      <div className="w-full sm:w-40">
+                        <Label
+                          htmlFor="playersPerGroup"
+                          className="text-right block mb-1.5"
                         >
-                          <Trash2 className="w-3.5 h-3.5 ml-1.5" />
-                          מחק הכל
+                          שחקנים לקבוצה
+                        </Label>
+                        <Input
+                          id="playersPerGroup"
+                          type="number"
+                          min="2"
+                          max="10"
+                          value={playersPerGroup}
+                          onChange={(e) =>
+                            setPlayersPerGroup(Number(e.target.value))
+                          }
+                          className="text-center"
+                          dir="rtl"
+                        />
+                      </div>
+                      <div className="flex gap-2 w-full sm:w-auto">
+                        <Button
+                          onClick={handleGenerateGroups}
+                          disabled={generating || !tournament?.players?.length}
+                          className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700"
+                          size="sm"
+                        >
+                          {generating ? (
+                            <span className="flex items-center gap-2">
+                              <svg
+                                className="animate-spin h-3.5 w-3.5"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                ></circle>
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                ></path>
+                              </svg>
+                              יוצר...
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-2">
+                              צור קבוצות
+                              <Shuffle className="w-3.5 h-3.5" />
+                            </span>
+                          )}
                         </Button>
-                      )}
+                        {groups.length > 0 && (
+                          <Button
+                            onClick={() => setShowDeleteDialog(true)}
+                            variant="destructive"
+                            size="sm"
+                            className="flex-1 sm:flex-none"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 ml-1.5" />
+                            מחק הכל
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Groups Display */}
               {groups.length > 0 ? (
@@ -455,47 +457,48 @@ function GroupsPage() {
                       </CardHeader>
                       <CardContent dir="rtl">
                         {/* Create Matches Button */}
-                        {group.matches.length === 0 && (
-                          <div className="mb-4">
-                            <Button
-                              onClick={() => handleCreateMatches(group._id)}
-                              disabled={creatingMatches === group._id}
-                              size="sm"
-                              className="w-full bg-blue-600 hover:bg-blue-700"
-                            >
-                              {creatingMatches === group._id ? (
-                                <span className="flex items-center gap-2">
-                                  <svg
-                                    className="animate-spin h-3.5 w-3.5"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <circle
-                                      className="opacity-25"
-                                      cx="12"
-                                      cy="12"
-                                      r="10"
-                                      stroke="currentColor"
-                                      strokeWidth="4"
-                                    ></circle>
-                                    <path
-                                      className="opacity-75"
-                                      fill="currentColor"
-                                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                    ></path>
-                                  </svg>
-                                  יוצר משחקים...
-                                </span>
-                              ) : (
-                                <span className="flex items-center gap-2">
-                                  צור משחקים
-                                  <Target className="w-3.5 h-3.5" />
-                                </span>
-                              )}
-                            </Button>
-                          </div>
-                        )}
+                        {process.env.NEXT_PUBLIC_IS_ADMIN_MODE === "true" &&
+                          group.matches.length === 0 && (
+                            <div className="mb-4">
+                              <Button
+                                onClick={() => handleCreateMatches(group._id)}
+                                disabled={creatingMatches === group._id}
+                                size="sm"
+                                className="w-full bg-blue-600 hover:bg-blue-700"
+                              >
+                                {creatingMatches === group._id ? (
+                                  <span className="flex items-center gap-2">
+                                    <svg
+                                      className="animate-spin h-3.5 w-3.5"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <circle
+                                        className="opacity-25"
+                                        cx="12"
+                                        cy="12"
+                                        r="10"
+                                        stroke="currentColor"
+                                        strokeWidth="4"
+                                      ></circle>
+                                      <path
+                                        className="opacity-75"
+                                        fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                      ></path>
+                                    </svg>
+                                    יוצר משחקים...
+                                  </span>
+                                ) : (
+                                  <span className="flex items-center gap-2">
+                                    צור משחקים
+                                    <Target className="w-3.5 h-3.5" />
+                                  </span>
+                                )}
+                              </Button>
+                            </div>
+                          )}
 
                         {/* Standings Table */}
                         <div className="mb-4">
