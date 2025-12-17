@@ -53,6 +53,11 @@ export async function POST(request: NextRequest) {
           roundName: null,
           nextMatchId: null,
           bracketPosition: null,
+          gambling: {
+            votes: [],
+            player1Votes: 0,
+            player2Votes: 0,
+          },
         });
         matchIds.push(match._id);
       }

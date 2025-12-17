@@ -105,6 +105,11 @@ export async function POST(request: NextRequest) {
         roundName,
         nextMatchId: null,
         bracketPosition: matchIndex,
+        gambling: {
+          votes: [],
+          player1Votes: 0,
+          player2Votes: 0,
+        },
       } as any);
 
       allMatches.push(match);

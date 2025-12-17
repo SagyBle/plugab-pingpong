@@ -88,6 +88,11 @@ export async function POST(request: NextRequest) {
       roundName,
       nextMatchId: null,
       bracketPosition: nextBracketPosition,
+      gambling: {
+        votes: [],
+        player1Votes: 0,
+        player2Votes: 0,
+      },
     } as any);
 
     const populatedMatch = await mongoService.Match.findById(match._id)

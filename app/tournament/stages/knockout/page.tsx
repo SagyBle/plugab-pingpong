@@ -120,8 +120,10 @@ function KnockoutPage() {
     } else {
       setLoading(false);
     }
+  }, [tournamentId]);
 
-    // Initialize session ID
+  // Initialize session ID for gambling
+  useEffect(() => {
     let storedSessionId = localStorage.getItem("gambling_session_id");
     if (!storedSessionId) {
       // Generate UUID
@@ -131,11 +133,11 @@ function KnockoutPage() {
       localStorage.setItem("gambling_session_id", storedSessionId);
     }
     setSessionId(storedSessionId);
-  }, [tournamentId]);
+  }, []);
 
   // Countdown timer effect
   useEffect(() => {
-    const deadline = new Date("2025-12-18T10:00:00").getTime();
+    const deadline = new Date("2025-12-18T08:00:00").getTime();
 
     const updateCountdown = () => {
       const now = new Date().getTime();
@@ -363,7 +365,7 @@ function KnockoutPage() {
 
     setTogglingCancel(true);
     try {
-      const response: any = await MatchFrontendService.toggleCancelled({
+      const response = await MatchFrontendService.toggleCancelled({
         matchId: matchToCancel._id,
         cancelled: isCancelling,
       });
@@ -375,8 +377,9 @@ function KnockoutPage() {
         toast.success(message);
 
         // Show warning if there's one
-        if (response.data?.warning) {
-          toast.warning(response.data.warning, { duration: 5000 });
+        const data = response.data as any;
+        if (data?.warning) {
+          toast.warning(data.warning, { duration: 5000 });
         }
 
         await fetchKnockoutMatches();
@@ -406,7 +409,7 @@ function KnockoutPage() {
       });
 
       if (response.success) {
-        toast.success("ההימור נרשם!");
+        toast.success("ההימור נרשם בהצלחה!");
         await fetchKnockoutMatches();
       } else {
         toast.error(response.error || "נכשל ברישום הימור");
@@ -418,10 +421,13 @@ function KnockoutPage() {
     }
   };
 
-  const getUserVote = (match: Match) => {
+  const getUserVote = (match: Match): "player1" | "player2" | null => {
     if (!match.gambling || !sessionId) return null;
-    const vote = match.gambling.votes.find((v) => v.sessionId === sessionId);
-    return vote?.votedFor || null;
+
+    const userVote = match.gambling.votes.find(
+      (vote) => vote.sessionId === sessionId
+    );
+    return userVote ? userVote.votedFor : null;
   };
 
   const getVotePercentages = (match: Match | null) => {
@@ -671,8 +677,8 @@ function KnockoutPage() {
                         </div>
                       </div>
                       <p className="text-sm text-orange-700">
-                        יש לסיים את כל המשחקים עד יום רביעי, 17/12/2025 בשעה
-                        18:00
+                        יש לסיים את כל המשחקים עד יום רביעי, 18/12/2025 בשעה
+                        8:00
                       </p>
                     </div>
                   </CardContent>
@@ -907,37 +913,123 @@ function KnockoutPage() {
                                       משחק {index + 1}
                                     </div>
 
-                                    {/* Gambling Display */}
-                                    {match.status !== "CANCELLED" && (
-                                      <div className="mb-2 text-center">
-                                        {getVotePercentages(match).total ===
-                                        0 ? (
-                                          <span className="text-xs text-gray-400 italic">
-                                            עוד לא נרשמו הימורים
+                                    {/* Gambling Display - No votes yet message */}
+                                    {match.status === "SCHEDULED" &&
+                                      getVotePercentages(match).total === 0 && (
+                                        <div className="mb-3 p-2 bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-200 rounded-lg text-center">
+                                          <span className="text-xs text-red-600 font-semibold">
+                                            🔥 עוד לא נרשמו הימורים - היה
+                                            הראשון!
                                           </span>
-                                        ) : (
-                                          <div className="flex justify-center gap-2 text-xs">
-                                            <span className="text-blue-600 font-medium">
-                                              {
-                                                getVotePercentages(match)
-                                                  .player1
-                                              }
-                                              %
-                                            </span>
-                                            <span className="text-gray-400">
-                                              vs
-                                            </span>
-                                            <span className="text-orange-600 font-medium">
-                                              {
-                                                getVotePercentages(match)
-                                                  .player2
-                                              }
-                                              %
-                                            </span>
+                                        </div>
+                                      )}
+
+                                    {/* Voting Buttons - show if votes exist or game is scheduled */}
+                                    {(getVotePercentages(match).total > 0 ||
+                                      match.status === "SCHEDULED") &&
+                                      match.player1 &&
+                                      match.player2 &&
+                                      match.status !== "CANCELLED" && (
+                                        <div
+                                          className={`space-y-1 mb-3 p-3 rounded-lg ${
+                                            match.status === "SCHEDULED"
+                                              ? "bg-gradient-to-r from-red-50 via-orange-50 to-red-50 border-2 border-red-300 shadow-md"
+                                              : "bg-gray-50 border border-gray-300"
+                                          }`}
+                                        >
+                                          <div
+                                            className={`text-xs font-bold text-center mb-2 flex items-center justify-center gap-1 ${
+                                              match.status === "SCHEDULED"
+                                                ? "text-red-700"
+                                                : "text-gray-600"
+                                            }`}
+                                          >
+                                            {match.status === "SCHEDULED" ? (
+                                              <>
+                                                <span>🔥</span>
+                                                <span>על מי אתם מהמרים?</span>
+                                                <span>🔥</span>
+                                              </>
+                                            ) : (
+                                              <span>תוצאות הימורים</span>
+                                            )}
                                           </div>
-                                        )}
-                                      </div>
-                                    )}
+                                          <div className="grid grid-cols-2 gap-2">
+                                            <Button
+                                              onClick={() =>
+                                                handleVote(match._id, "player1")
+                                              }
+                                              disabled={
+                                                match.status !== "SCHEDULED" ||
+                                                votingMatchId === match._id
+                                              }
+                                              size="sm"
+                                              variant={
+                                                getUserVote(match) === "player1"
+                                                  ? "default"
+                                                  : "outline"
+                                              }
+                                              className={`text-xs font-semibold ${
+                                                match.status === "SCHEDULED"
+                                                  ? getUserVote(match) ===
+                                                    "player1"
+                                                    ? "bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 shadow-lg"
+                                                    : "bg-white hover:bg-red-50 border-red-300 text-red-700"
+                                                  : "bg-gray-100 border-gray-300 text-gray-600 cursor-not-allowed"
+                                              }`}
+                                            >
+                                              {match.player1?.name}
+                                              {getVotePercentages(match).total >
+                                                0 && (
+                                                <span className="text-[10px] opacity-80 ml-1">
+                                                  (
+                                                  {
+                                                    getVotePercentages(match)
+                                                      .player1
+                                                  }
+                                                  %)
+                                                </span>
+                                              )}
+                                            </Button>
+                                            <Button
+                                              onClick={() =>
+                                                handleVote(match._id, "player2")
+                                              }
+                                              disabled={
+                                                match.status !== "SCHEDULED" ||
+                                                votingMatchId === match._id
+                                              }
+                                              size="sm"
+                                              variant={
+                                                getUserVote(match) === "player2"
+                                                  ? "default"
+                                                  : "outline"
+                                              }
+                                              className={`text-xs font-semibold ${
+                                                match.status === "SCHEDULED"
+                                                  ? getUserVote(match) ===
+                                                    "player2"
+                                                    ? "bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 shadow-lg"
+                                                    : "bg-white hover:bg-red-50 border-red-300 text-red-700"
+                                                  : "bg-gray-100 border-gray-300 text-gray-600 cursor-not-allowed"
+                                              }`}
+                                            >
+                                              {match.player2?.name}
+                                              {getVotePercentages(match).total >
+                                                0 && (
+                                                <span className="text-[10px] opacity-80 ml-1">
+                                                  (
+                                                  {
+                                                    getVotePercentages(match)
+                                                      .player2
+                                                  }
+                                                  %)
+                                                </span>
+                                              )}
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      )}
 
                                     {/* Player 1 */}
                                     <div
@@ -998,7 +1090,7 @@ function KnockoutPage() {
                                       )}
                                     </div>
 
-                                    {/* Status Badge and Update Button */}
+                                    {/* Status Badge and Admin Buttons */}
                                     <div className="mt-3 space-y-2">
                                       <div className="text-center">
                                         <span
@@ -1021,23 +1113,6 @@ function KnockoutPage() {
                                             : "ממתין"}
                                         </span>
                                       </div>
-                                      {match.player1 &&
-                                        match.player2 &&
-                                        match.status !== "CANCELLED" && (
-                                          <Button
-                                            onClick={() =>
-                                              handleOpenScoreDialog(match)
-                                            }
-                                            size="sm"
-                                            variant="outline"
-                                            className="w-full text-xs"
-                                          >
-                                            <Edit className="w-3 h-3 ml-1" />
-                                            {match.status === "COMPLETED"
-                                              ? "עדכן תוצאה"
-                                              : "הזן תוצאה"}
-                                          </Button>
-                                        )}
                                       {process.env.NEXT_PUBLIC_IS_ADMIN_MODE ===
                                         "true" &&
                                         match.player1 &&
@@ -1077,69 +1152,23 @@ function KnockoutPage() {
                                           </>
                                         )}
 
-                                      {/* Voting Buttons */}
-                                      {match.status === "SCHEDULED" &&
-                                        match.player1 &&
-                                        match.player2 && (
-                                          <div className="space-y-1">
-                                            <div className="text-xs text-gray-500 text-center mb-1">
-                                              הימורים
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-2">
-                                              <Button
-                                                onClick={() =>
-                                                  handleVote(
-                                                    match._id,
-                                                    "player1"
-                                                  )
-                                                }
-                                                disabled={
-                                                  votingMatchId === match._id
-                                                }
-                                                size="sm"
-                                                variant={
-                                                  getUserVote(match) ===
-                                                  "player1"
-                                                    ? "default"
-                                                    : "outline"
-                                                }
-                                                className={`text-xs ${
-                                                  getUserVote(match) ===
-                                                  "player1"
-                                                    ? "bg-blue-600"
-                                                    : ""
-                                                }`}
-                                              >
-                                                {match.player1?.name}
-                                              </Button>
-                                              <Button
-                                                onClick={() =>
-                                                  handleVote(
-                                                    match._id,
-                                                    "player2"
-                                                  )
-                                                }
-                                                disabled={
-                                                  votingMatchId === match._id
-                                                }
-                                                size="sm"
-                                                variant={
-                                                  getUserVote(match) ===
-                                                  "player2"
-                                                    ? "default"
-                                                    : "outline"
-                                                }
-                                                className={`text-xs ${
-                                                  getUserVote(match) ===
-                                                  "player2"
-                                                    ? "bg-orange-600"
-                                                    : ""
-                                                }`}
-                                              >
-                                                {match.player2?.name}
-                                              </Button>
-                                            </div>
-                                          </div>
+                                      {/* Score Update Button */}
+                                      {match.player1 &&
+                                        match.player2 &&
+                                        match.status !== "CANCELLED" && (
+                                          <Button
+                                            onClick={() =>
+                                              handleOpenScoreDialog(match)
+                                            }
+                                            size="sm"
+                                            variant="outline"
+                                            className="w-full text-xs"
+                                          >
+                                            <Edit className="w-3 h-3 ml-1" />
+                                            {match.status === "COMPLETED"
+                                              ? "עדכן תוצאה"
+                                              : "הזן תוצאה"}
+                                          </Button>
                                         )}
                                     </div>
                                   </CardContent>
@@ -1171,6 +1200,54 @@ function KnockoutPage() {
                   </div>
                 </>
               )}
+
+              {/* Reset Gambling Dialog */}
+              <Dialog
+                open={showResetGamblingDialog}
+                onOpenChange={setShowResetGamblingDialog}
+              >
+                <DialogContent
+                  className="w-[calc(100%-2rem)] sm:max-w-md"
+                  dir="rtl"
+                >
+                  <DialogHeader>
+                    <DialogTitle className="text-base text-right">
+                      מחיקת הימורים
+                    </DialogTitle>
+                    <DialogDescription className="text-sm text-right">
+                      האם למחוק את כל ההימורים של המשחק בין{" "}
+                      {matchToResetGambling?.player1?.name} ל
+                      {matchToResetGambling?.player2?.name}?
+                      <br />
+                      <span className="text-orange-600 mt-2 block">
+                        פעולה זו תמחק{" "}
+                        {getVotePercentages(matchToResetGambling).total} הימורים
+                        ולא ניתן לשחזר אותם.
+                      </span>
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter className="flex-col-reverse sm:flex-row gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowResetGamblingDialog(false)}
+                      disabled={resettingGambling}
+                      className="w-full sm:w-auto"
+                      size="sm"
+                    >
+                      ביטול
+                    </Button>
+                    <Button
+                      onClick={handleResetGambling}
+                      disabled={resettingGambling}
+                      variant="destructive"
+                      className="w-full sm:w-auto"
+                      size="sm"
+                    >
+                      {resettingGambling ? "מוחק..." : "כן, מחק הימורים"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
 
               {/* Delete Confirmation Dialog */}
               <Dialog

@@ -30,6 +30,7 @@ const publicRoutes = [
   "/api/matches/create-custom",
   "/api/matches/toggle-cancelled",
   "/api/matches/vote",
+  "/api/matches/reset-gambling",
 ];
 
 const adminOnlyRoutes = ["/api/admin/signup"];
