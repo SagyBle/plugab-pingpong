@@ -14,6 +14,11 @@ interface CreateCustomMatchData {
   roundName: string;
 }
 
+interface ToggleCancelledData {
+  matchId: string;
+  cancelled: boolean;
+}
+
 class MatchFrontendService {
   static async updateScore(data: UpdateScoreData) {
     return await ApiService.put("/matches/update-score", data);
@@ -21,6 +26,10 @@ class MatchFrontendService {
 
   static async createCustomMatch(data: CreateCustomMatchData) {
     return await ApiService.post("/matches/create-custom", data);
+  }
+
+  static async toggleCancelled(data: ToggleCancelledData) {
+    return await ApiService.put("/matches/toggle-cancelled", data);
   }
 }
 

@@ -94,6 +94,9 @@ function KnockoutPage() {
   const [selectedPlayer1, setSelectedPlayer1] = useState<string>("");
   const [selectedPlayer2, setSelectedPlayer2] = useState<string>("");
   const [creatingMatch, setCreatingMatch] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [matchToCancel, setMatchToCancel] = useState<Match | null>(null);
+  const [togglingCancel, setTogglingCancel] = useState(false);
 
   useEffect(() => {
     if (tournamentId) {
@@ -106,7 +109,7 @@ function KnockoutPage() {
 
   // Countdown timer effect
   useEffect(() => {
-    const deadline = new Date("2025-12-16T18:00:00").getTime();
+    const deadline = new Date("2025-12-18T18:00:00").getTime();
 
     const updateCountdown = () => {
       const now = new Date().getTime();
@@ -249,6 +252,12 @@ function KnockoutPage() {
 
       if (response.success) {
         toast.success("השלב הבא נוצר בהצלחה!");
+
+        // Show warning if there's a player without opponent
+        if (response.data?.warning) {
+          toast.warning(response.data.warning, { duration: 6000 });
+        }
+
         await fetchKnockoutMatches();
       } else {
         toast.error(response.error || "נכשל ביצירת השלב הבא");
@@ -313,6 +322,46 @@ function KnockoutPage() {
     return tournament.players.filter(
       (player: any) => !playersInRound.includes(player._id)
     );
+  };
+
+  const handleOpenCancelDialog = (match: Match) => {
+    setMatchToCancel(match);
+    setShowCancelDialog(true);
+  };
+
+  const handleToggleCancelled = async () => {
+    if (!matchToCancel) return;
+
+    const isCancelling = matchToCancel.status !== "CANCELLED";
+
+    setTogglingCancel(true);
+    try {
+      const response = await MatchFrontendService.toggleCancelled({
+        matchId: matchToCancel._id,
+        cancelled: isCancelling,
+      });
+
+      if (response.success) {
+        const message = isCancelling
+          ? "המשחק בוטל בהצלחה"
+          : "המשחק שוחזר בהצלחה";
+        toast.success(message);
+
+        // Show warning if there's one
+        if (response.data?.warning) {
+          toast.warning(response.data.warning, { duration: 5000 });
+        }
+
+        await fetchKnockoutMatches();
+        setShowCancelDialog(false);
+      } else {
+        toast.error(response.error || "נכשל בביטול משחק");
+      }
+    } catch (error) {
+      toast.error("אירעה שגיאה");
+    } finally {
+      setTogglingCancel(false);
+    }
   };
 
   // Filter matches based on search query
@@ -388,18 +437,21 @@ function KnockoutPage() {
     const highestRound = Math.max(...roundNumbers);
     const highestRoundMatches = matchesByRound[highestRound] || [];
 
-    // Check if all matches in the highest round are completed
-    const allCompleted = highestRoundMatches.every(
-      (m) => m.status === "COMPLETED" && m.winner
+    // Check if all matches in the highest round are completed OR cancelled
+    const allCompletedOrCancelled = highestRoundMatches.every(
+      (m) => m.status === "COMPLETED" || m.status === "CANCELLED"
     );
 
     // Check if there are enough winners for another round (at least 2)
-    const winnersCount = highestRoundMatches.filter((m) => m.winner).length;
+    // Only count winners from completed matches (cancelled matches have no winners)
+    const winnersCount = highestRoundMatches.filter(
+      (m) => m.status === "COMPLETED" && m.winner
+    ).length;
 
     // Don't show button if this is already the final (only 1 match in the round)
     const isFinal = highestRoundMatches.length === 1;
 
-    return allCompleted && winnersCount >= 2 && !isFinal;
+    return allCompletedOrCancelled && winnersCount >= 2 && !isFinal;
   };
 
   const filteredMatchesByRound = getFilteredMatchesByRound();
@@ -516,7 +568,7 @@ function KnockoutPage() {
                         </div>
                       </div>
                       <p className="text-sm text-orange-700">
-                        יש לסיים את כל המשחקים עד יום שלישי, 16/12/2025 בשעה
+                        יש לסיים את כל המשחקים עד יום שלישי, 18/12/2025 בשעה
                         18:00
                       </p>
                     </div>
@@ -738,7 +790,9 @@ function KnockoutPage() {
                                 <Card
                                   key={match._id}
                                   className={`border ${
-                                    match.status === "COMPLETED"
+                                    match.status === "CANCELLED"
+                                      ? "bg-gray-100 border-gray-300 opacity-60 blur-[0.5px]"
+                                      : match.status === "COMPLETED"
                                       ? "bg-green-50 border-green-200"
                                       : match.status === "IN_PROGRESS"
                                       ? "bg-blue-50 border-blue-200"
@@ -814,35 +868,62 @@ function KnockoutPage() {
                                       <div className="text-center">
                                         <span
                                           className={`inline-block px-2 py-0.5 rounded text-xs ${
-                                            match.status === "COMPLETED"
+                                            match.status === "CANCELLED"
+                                              ? "bg-gray-200 text-gray-700"
+                                              : match.status === "COMPLETED"
                                               ? "bg-green-100 text-green-700"
                                               : match.status === "IN_PROGRESS"
                                               ? "bg-blue-100 text-blue-700"
                                               : "bg-gray-100 text-gray-600"
                                           }`}
                                         >
-                                          {match.status === "COMPLETED"
+                                          {match.status === "CANCELLED"
+                                            ? "❌ בוטל"
+                                            : match.status === "COMPLETED"
                                             ? "הסתיים"
                                             : match.status === "IN_PROGRESS"
                                             ? "בתהליך"
                                             : "ממתין"}
                                         </span>
                                       </div>
-                                      {match.player1 && match.player2 && (
-                                        <Button
-                                          onClick={() =>
-                                            handleOpenScoreDialog(match)
-                                          }
-                                          size="sm"
-                                          variant="outline"
-                                          className="w-full text-xs"
-                                        >
-                                          <Edit className="w-3 h-3 ml-1" />
-                                          {match.status === "COMPLETED"
-                                            ? "עדכן תוצאה"
-                                            : "הזן תוצאה"}
-                                        </Button>
-                                      )}
+                                      {match.player1 &&
+                                        match.player2 &&
+                                        match.status !== "CANCELLED" && (
+                                          <Button
+                                            onClick={() =>
+                                              handleOpenScoreDialog(match)
+                                            }
+                                            size="sm"
+                                            variant="outline"
+                                            className="w-full text-xs"
+                                          >
+                                            <Edit className="w-3 h-3 ml-1" />
+                                            {match.status === "COMPLETED"
+                                              ? "עדכן תוצאה"
+                                              : "הזן תוצאה"}
+                                          </Button>
+                                        )}
+                                      {process.env.NEXT_PUBLIC_IS_ADMIN_MODE ===
+                                        "true" &&
+                                        match.player1 &&
+                                        match.player2 && (
+                                          <Button
+                                            onClick={() =>
+                                              handleOpenCancelDialog(match)
+                                            }
+                                            size="sm"
+                                            variant={
+                                              match.status === "CANCELLED"
+                                                ? "default"
+                                                : "destructive"
+                                            }
+                                            className="w-full text-xs"
+                                          >
+                                            {match.status === "CANCELLED"
+                                              ? "שחזר משחק"
+                                              : "בטל משחק"}
+                                          </Button>
+                                        )}
                                     </div>
                                   </CardContent>
                                 </Card>
@@ -910,6 +991,69 @@ function KnockoutPage() {
                       size="sm"
                     >
                       {deleting ? "מוחק..." : "כן, מחק ברקט"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {/* Cancel Match Dialog */}
+              <Dialog
+                open={showCancelDialog}
+                onOpenChange={setShowCancelDialog}
+              >
+                <DialogContent
+                  className="w-[calc(100%-2rem)] sm:max-w-md"
+                  dir="rtl"
+                >
+                  <DialogHeader>
+                    <DialogTitle className="text-base text-right">
+                      {matchToCancel?.status === "CANCELLED"
+                        ? "שחזור משחק"
+                        : "ביטול משחק"}
+                    </DialogTitle>
+                    <DialogDescription className="text-sm text-right">
+                      {matchToCancel?.status === "CANCELLED" ? (
+                        "האם לשחזר את המשחק? שני השחקנים יוכלו להתחרות שוב."
+                      ) : (
+                        <>
+                          {matchToCancel?.status === "COMPLETED" && (
+                            <span className="text-orange-600 block mb-2">
+                              ⚠️ אזהרה: למשחק זה יש כבר תוצאה!
+                            </span>
+                          )}
+                          האם לבטל את המשחק בין {matchToCancel?.player1?.name} ל
+                          {matchToCancel?.player2?.name}? שני השחקנים לא יילקחו
+                          בחשבון לסיבוב הבא.
+                        </>
+                      )}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter className="flex-col-reverse sm:flex-row gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowCancelDialog(false)}
+                      disabled={togglingCancel}
+                      className="w-full sm:w-auto"
+                      size="sm"
+                    >
+                      ביטול
+                    </Button>
+                    <Button
+                      onClick={handleToggleCancelled}
+                      disabled={togglingCancel}
+                      variant={
+                        matchToCancel?.status === "CANCELLED"
+                          ? "default"
+                          : "destructive"
+                      }
+                      className="w-full sm:w-auto"
+                      size="sm"
+                    >
+                      {togglingCancel
+                        ? "מבצע..."
+                        : matchToCancel?.status === "CANCELLED"
+                        ? "כן, שחזר משחק"
+                        : "כן, בטל משחק"}
                     </Button>
                   </DialogFooter>
                 </DialogContent>

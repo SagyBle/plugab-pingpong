@@ -65,20 +65,22 @@ export async function POST(request: NextRequest) {
       (m: any) => m.round === currentRound
     );
 
-    // Check if all matches in current round are completed
-    const allCompleted = currentRoundMatches.every(
-      (m: any) => m.status === "COMPLETED" && m.winner
+    // Check if all matches in current round are completed OR cancelled
+    const allCompletedOrCancelled = currentRoundMatches.every(
+      (m: any) => m.status === "COMPLETED" || m.status === "CANCELLED"
     );
 
-    if (!allCompleted) {
+    if (!allCompletedOrCancelled) {
       return BackendApiService.errorResponse(
-        "All matches in the current round must be completed before creating the next round",
+        "All matches in the current round must be completed or cancelled before creating the next round",
         400
       );
     }
 
-    // Get winners for the next round
-    const winners = currentRoundMatches.map((m: any) => m.winner);
+    // Get winners for the next round (only from completed matches)
+    const winners = currentRoundMatches
+      .filter((m: any) => m.status === "COMPLETED" && m.winner)
+      .map((m: any) => m.winner);
 
     // Check if we can create another round (need at least 2 winners)
     if (winners.length < 2) {
@@ -107,6 +109,13 @@ export async function POST(request: NextRequest) {
     // Create next round matches
     const nextRoundMatches: any[] = [];
     const matchesInNextRound = Math.floor(winners.length / 2);
+    let warningMessage = null;
+
+    // Check for odd number of winners
+    if (winners.length % 2 !== 0) {
+      const playerWithoutOpponent = winners[winners.length - 1];
+      warningMessage = `אזהרה: ${playerWithoutOpponent.name} אין לו יריב בסיבוב זה`;
+    }
 
     for (let matchIndex = 0; matchIndex < matchesInNextRound; matchIndex++) {
       const player1Index = matchIndex * 2;
@@ -143,6 +152,7 @@ export async function POST(request: NextRequest) {
         round: nextRound,
         roundName: nextRoundName,
         totalMatches: nextRoundMatches.length,
+        warning: warningMessage,
       },
       `Successfully created ${nextRoundName} with ${nextRoundMatches.length} matches`
     );
@@ -150,4 +160,3 @@ export async function POST(request: NextRequest) {
     return BackendApiService.handleError(error);
   }
 }
-
