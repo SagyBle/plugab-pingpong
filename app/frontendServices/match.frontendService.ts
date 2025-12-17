@@ -19,6 +19,16 @@ interface ToggleCancelledData {
   cancelled: boolean;
 }
 
+interface VoteData {
+  matchId: string;
+  sessionId: string;
+  votedFor: "player1" | "player2";
+}
+
+interface ResetGamblingData {
+  matchId: string;
+}
+
 class MatchFrontendService {
   static async updateScore(data: UpdateScoreData) {
     return await ApiService.put("/matches/update-score", data);
@@ -30,6 +40,14 @@ class MatchFrontendService {
 
   static async toggleCancelled(data: ToggleCancelledData) {
     return await ApiService.put("/matches/toggle-cancelled", data);
+  }
+
+  static async vote(data: VoteData) {
+    return await ApiService.post("/matches/vote", data);
+  }
+
+  static async resetGambling(data: ResetGamblingData) {
+    return await ApiService.put("/matches/reset-gambling", data);
   }
 }
 

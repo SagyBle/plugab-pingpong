@@ -11,12 +11,22 @@ export interface Match extends MongoDocument {
   winner: Types.ObjectId | null;
   textNotes: string;
   image: string;
-  status: "SCHEDULED" | "IN_PROGRESS" | "COMPLETED";
+  status: "SCHEDULED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
   // Knockout-specific fields
   round: number | null;
   roundName: string | null;
   nextMatchId: Types.ObjectId | null;
   bracketPosition: number | null;
+  // Gambling/voting
+  gambling: {
+    votes: Array<{
+      sessionId: string;
+      votedFor: "player1" | "player2";
+      timestamp: Date;
+    }>;
+    player1Votes: number;
+    player2Votes: number;
+  };
 }
 
 export const MatchSchema = new Schema<Match>(
@@ -36,7 +46,7 @@ export const MatchSchema = new Schema<Match>(
     image: { type: String, default: "" },
     status: {
       type: String,
-      enum: ["SCHEDULED", "IN_PROGRESS", "COMPLETED"],
+      enum: ["SCHEDULED", "IN_PROGRESS", "COMPLETED", "CANCELLED"],
       default: "SCHEDULED",
     },
     // Knockout fields
@@ -44,6 +54,25 @@ export const MatchSchema = new Schema<Match>(
     roundName: { type: String, default: null },
     nextMatchId: { type: Schema.Types.ObjectId, ref: "Match", default: null },
     bracketPosition: { type: Number, default: null },
+    // Gambling/voting
+    gambling: {
+      type: {
+        votes: [
+          {
+            sessionId: { type: String, required: true },
+            votedFor: {
+              type: String,
+              enum: ["player1", "player2"],
+              required: true,
+            },
+            timestamp: { type: Date, default: Date.now },
+          },
+        ],
+        player1Votes: { type: Number, default: 0 },
+        player2Votes: { type: Number, default: 0 },
+      },
+      default: { votes: [], player1Votes: 0, player2Votes: 0 },
+    },
   },
   { timestamps: true }
 );

@@ -57,6 +57,15 @@ interface Match {
   roundName: string;
   bracketPosition: number;
   nextMatchId: string | null;
+  gambling?: {
+    votes: Array<{
+      sessionId: string;
+      votedFor: "player1" | "player2";
+      timestamp: Date;
+    }>;
+    player1Votes: number;
+    player2Votes: number;
+  };
 }
 
 function KnockoutPage() {
@@ -97,6 +106,12 @@ function KnockoutPage() {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [matchToCancel, setMatchToCancel] = useState<Match | null>(null);
   const [togglingCancel, setTogglingCancel] = useState(false);
+  const [sessionId, setSessionId] = useState<string>("");
+  const [votingMatchId, setVotingMatchId] = useState<string | null>(null);
+  const [showResetGamblingDialog, setShowResetGamblingDialog] = useState(false);
+  const [matchToResetGambling, setMatchToResetGambling] =
+    useState<Match | null>(null);
+  const [resettingGambling, setResettingGambling] = useState(false);
 
   useEffect(() => {
     if (tournamentId) {
@@ -105,11 +120,22 @@ function KnockoutPage() {
     } else {
       setLoading(false);
     }
+
+    // Initialize session ID
+    let storedSessionId = localStorage.getItem("gambling_session_id");
+    if (!storedSessionId) {
+      // Generate UUID
+      storedSessionId = `${Date.now()}-${Math.random()
+        .toString(36)
+        .substr(2, 9)}`;
+      localStorage.setItem("gambling_session_id", storedSessionId);
+    }
+    setSessionId(storedSessionId);
   }, [tournamentId]);
 
   // Countdown timer effect
   useEffect(() => {
-    const deadline = new Date("2025-12-18T18:00:00").getTime();
+    const deadline = new Date("2025-12-18T10:00:00").getTime();
 
     const updateCountdown = () => {
       const now = new Date().getTime();
@@ -362,6 +388,82 @@ function KnockoutPage() {
       toast.error("אירעה שגיאה");
     } finally {
       setTogglingCancel(false);
+    }
+  };
+
+  const handleVote = async (
+    matchId: string,
+    votedFor: "player1" | "player2"
+  ) => {
+    if (!sessionId) return;
+
+    setVotingMatchId(matchId);
+    try {
+      const response = await MatchFrontendService.vote({
+        matchId,
+        sessionId,
+        votedFor,
+      });
+
+      if (response.success) {
+        toast.success("ההימור נרשם!");
+        await fetchKnockoutMatches();
+      } else {
+        toast.error(response.error || "נכשל ברישום הימור");
+      }
+    } catch (error) {
+      toast.error("אירעה שגיאה");
+    } finally {
+      setVotingMatchId(null);
+    }
+  };
+
+  const getUserVote = (match: Match) => {
+    if (!match.gambling || !sessionId) return null;
+    const vote = match.gambling.votes.find((v) => v.sessionId === sessionId);
+    return vote?.votedFor || null;
+  };
+
+  const getVotePercentages = (match: Match | null) => {
+    if (!match || !match.gambling) return { player1: 0, player2: 0, total: 0 };
+
+    const player1Votes = match.gambling.player1Votes || 0;
+    const player2Votes = match.gambling.player2Votes || 0;
+    const total = player1Votes + player2Votes;
+
+    if (total === 0) return { player1: 0, player2: 0, total: 0 };
+
+    const player1 = Math.round((player1Votes / total) * 100);
+    const player2 = 100 - player1;
+
+    return { player1, player2, total };
+  };
+
+  const handleOpenResetGamblingDialog = (match: Match) => {
+    setMatchToResetGambling(match);
+    setShowResetGamblingDialog(true);
+  };
+
+  const handleResetGambling = async () => {
+    if (!matchToResetGambling) return;
+
+    setResettingGambling(true);
+    try {
+      const response = await MatchFrontendService.resetGambling({
+        matchId: matchToResetGambling._id,
+      });
+
+      if (response.success) {
+        toast.success("ההימורים נמחקו בהצלחה!");
+        await fetchKnockoutMatches();
+        setShowResetGamblingDialog(false);
+      } else {
+        toast.error(response.error || "נכשל במחיקת הימורים");
+      }
+    } catch (error) {
+      toast.error("אירעה שגיאה");
+    } finally {
+      setResettingGambling(false);
     }
   };
 
@@ -805,6 +907,38 @@ function KnockoutPage() {
                                       משחק {index + 1}
                                     </div>
 
+                                    {/* Gambling Display */}
+                                    {match.status !== "CANCELLED" && (
+                                      <div className="mb-2 text-center">
+                                        {getVotePercentages(match).total ===
+                                        0 ? (
+                                          <span className="text-xs text-gray-400 italic">
+                                            עוד לא נרשמו הימורים
+                                          </span>
+                                        ) : (
+                                          <div className="flex justify-center gap-2 text-xs">
+                                            <span className="text-blue-600 font-medium">
+                                              {
+                                                getVotePercentages(match)
+                                                  .player1
+                                              }
+                                              %
+                                            </span>
+                                            <span className="text-gray-400">
+                                              vs
+                                            </span>
+                                            <span className="text-orange-600 font-medium">
+                                              {
+                                                getVotePercentages(match)
+                                                  .player2
+                                              }
+                                              %
+                                            </span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+
                                     {/* Player 1 */}
                                     <div
                                       className={`flex items-center justify-between p-2 rounded mb-2 ${
@@ -908,22 +1042,104 @@ function KnockoutPage() {
                                         "true" &&
                                         match.player1 &&
                                         match.player2 && (
-                                          <Button
-                                            onClick={() =>
-                                              handleOpenCancelDialog(match)
-                                            }
-                                            size="sm"
-                                            variant={
-                                              match.status === "CANCELLED"
-                                                ? "default"
-                                                : "destructive"
-                                            }
-                                            className="w-full text-xs"
-                                          >
-                                            {match.status === "CANCELLED"
-                                              ? "שחזר משחק"
-                                              : "בטל משחק"}
-                                          </Button>
+                                          <>
+                                            <Button
+                                              onClick={() =>
+                                                handleOpenCancelDialog(match)
+                                              }
+                                              size="sm"
+                                              variant={
+                                                match.status === "CANCELLED"
+                                                  ? "default"
+                                                  : "destructive"
+                                              }
+                                              className="w-full text-xs"
+                                            >
+                                              {match.status === "CANCELLED"
+                                                ? "שחזר משחק"
+                                                : "בטל משחק"}
+                                            </Button>
+                                            {getVotePercentages(match).total >
+                                              0 && (
+                                              <Button
+                                                onClick={() =>
+                                                  handleOpenResetGamblingDialog(
+                                                    match
+                                                  )
+                                                }
+                                                size="sm"
+                                                variant="outline"
+                                                className="w-full text-xs text-red-600 border-red-300 hover:bg-red-50"
+                                              >
+                                                מחק הימורים
+                                              </Button>
+                                            )}
+                                          </>
+                                        )}
+
+                                      {/* Voting Buttons */}
+                                      {match.status === "SCHEDULED" &&
+                                        match.player1 &&
+                                        match.player2 && (
+                                          <div className="space-y-1">
+                                            <div className="text-xs text-gray-500 text-center mb-1">
+                                              הימורים
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-2">
+                                              <Button
+                                                onClick={() =>
+                                                  handleVote(
+                                                    match._id,
+                                                    "player1"
+                                                  )
+                                                }
+                                                disabled={
+                                                  votingMatchId === match._id
+                                                }
+                                                size="sm"
+                                                variant={
+                                                  getUserVote(match) ===
+                                                  "player1"
+                                                    ? "default"
+                                                    : "outline"
+                                                }
+                                                className={`text-xs ${
+                                                  getUserVote(match) ===
+                                                  "player1"
+                                                    ? "bg-blue-600"
+                                                    : ""
+                                                }`}
+                                              >
+                                                {match.player1?.name}
+                                              </Button>
+                                              <Button
+                                                onClick={() =>
+                                                  handleVote(
+                                                    match._id,
+                                                    "player2"
+                                                  )
+                                                }
+                                                disabled={
+                                                  votingMatchId === match._id
+                                                }
+                                                size="sm"
+                                                variant={
+                                                  getUserVote(match) ===
+                                                  "player2"
+                                                    ? "default"
+                                                    : "outline"
+                                                }
+                                                className={`text-xs ${
+                                                  getUserVote(match) ===
+                                                  "player2"
+                                                    ? "bg-orange-600"
+                                                    : ""
+                                                }`}
+                                              >
+                                                {match.player2?.name}
+                                              </Button>
+                                            </div>
+                                          </div>
                                         )}
                                     </div>
                                   </CardContent>
@@ -992,6 +1208,54 @@ function KnockoutPage() {
                       size="sm"
                     >
                       {deleting ? "מוחק..." : "כן, מחק ברקט"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {/* Reset Gambling Dialog */}
+              <Dialog
+                open={showResetGamblingDialog}
+                onOpenChange={setShowResetGamblingDialog}
+              >
+                <DialogContent
+                  className="w-[calc(100%-2rem)] sm:max-w-md"
+                  dir="rtl"
+                >
+                  <DialogHeader>
+                    <DialogTitle className="text-base text-right">
+                      מחיקת הימורים
+                    </DialogTitle>
+                    <DialogDescription className="text-sm text-right">
+                      האם למחוק את כל ההימורים של המשחק בין{" "}
+                      {matchToResetGambling?.player1?.name} ל
+                      {matchToResetGambling?.player2?.name}?
+                      <br />
+                      <span className="text-orange-600 mt-2 block">
+                        פעולה זו תמחק{" "}
+                        {getVotePercentages(matchToResetGambling).total} הימורים
+                        ולא ניתן לשחזר אותם.
+                      </span>
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter className="flex-col-reverse sm:flex-row gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowResetGamblingDialog(false)}
+                      disabled={resettingGambling}
+                      className="w-full sm:w-auto"
+                      size="sm"
+                    >
+                      ביטול
+                    </Button>
+                    <Button
+                      onClick={handleResetGambling}
+                      disabled={resettingGambling}
+                      variant="destructive"
+                      className="w-full sm:w-auto"
+                      size="sm"
+                    >
+                      {resettingGambling ? "מוחק..." : "כן, מחק הימורים"}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
