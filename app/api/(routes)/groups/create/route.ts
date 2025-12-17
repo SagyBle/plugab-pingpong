@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
         matches: [],
         standings: groupPlayers,
         advancingPlayers: [],
-        numberOfAdvancingPlayers: 2,
+        numberOfAdvancingPlayers: 1,
         status: "NOT_STARTED",
         metadata: {},
       });

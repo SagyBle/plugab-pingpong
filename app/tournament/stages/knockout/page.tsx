@@ -938,20 +938,33 @@ function KnockoutPage() {
                                           }`}
                                         >
                                           <div
-                                            className={`text-xs font-bold text-center mb-2 flex items-center justify-center gap-1 ${
+                                            className={`text-xs font-bold text-center mb-2 ${
                                               match.status === "SCHEDULED"
                                                 ? "text-red-700"
                                                 : "text-gray-600"
                                             }`}
                                           >
-                                            {match.status === "SCHEDULED" ? (
-                                              <>
-                                                <span>🔥</span>
-                                                <span>על מי אתם מהמרים?</span>
-                                                <span>🔥</span>
-                                              </>
-                                            ) : (
-                                              <span>תוצאות הימורים</span>
+                                            <div className="flex items-center justify-center gap-1">
+                                              {match.status === "SCHEDULED" ? (
+                                                <>
+                                                  <span>🔥</span>
+                                                  <span>על מי אתם מהמרים?</span>
+                                                  <span>🔥</span>
+                                                </>
+                                              ) : (
+                                                <span>תוצאות הימורים</span>
+                                              )}
+                                            </div>
+                                            {getVotePercentages(match).total >
+                                              0 && (
+                                              <div className="text-[10px] font-normal mt-1 opacity-75">
+                                                סה"כ{" "}
+                                                {
+                                                  getVotePercentages(match)
+                                                    .total
+                                                }{" "}
+                                                הימורים
+                                              </div>
                                             )}
                                           </div>
                                           <div className="grid grid-cols-2 gap-2">

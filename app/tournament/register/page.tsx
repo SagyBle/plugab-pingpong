@@ -568,6 +568,19 @@ function RegisterPage() {
             <p className="text-sm sm:text-base text-gray-600">
               בחר טורניר והרשם לתחרות
             </p>
+            {process.env.NEXT_PUBLIC_IS_ADMIN_MODE === "true" && (
+              <div className="mt-4">
+                <Link href="/dashboard">
+                  <Button
+                    size="sm"
+                    className="bg-green-600 hover:bg-green-700 text-sm"
+                  >
+                    <Trophy className="w-4 h-4 ml-1.5" />
+                    צור טורניר חדש
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
 
           {loading ? (

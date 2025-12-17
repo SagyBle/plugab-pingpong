@@ -33,7 +33,9 @@ import {
   Trash2,
   AlertCircle,
   Target,
+  Edit,
 } from "lucide-react";
+import MatchFrontendService from "@/app/frontendServices/match.frontendService";
 
 interface Tournament {
   _id: string;
@@ -81,6 +83,11 @@ function GroupsPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [creatingMatches, setCreatingMatches] = useState<string | null>(null);
+  const [showScoreDialog, setShowScoreDialog] = useState(false);
+  const [selectedMatch, setSelectedMatch] = useState<any | null>(null);
+  const [player1Score, setPlayer1Score] = useState<number>(0);
+  const [player2Score, setPlayer2Score] = useState<number>(0);
+  const [updatingScore, setUpdatingScore] = useState(false);
 
   useEffect(() => {
     if (tournamentId) {
@@ -168,6 +175,55 @@ function GroupsPage() {
       toast.error("אירעה שגיאה");
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleOpenScoreDialog = (match: any) => {
+    setSelectedMatch(match);
+    setPlayer1Score(match.player1Score || 0);
+    setPlayer2Score(match.player2Score || 0);
+    setShowScoreDialog(true);
+  };
+
+  const handleUpdateScore = async () => {
+    if (!selectedMatch) return;
+
+    // Validation: Prevent ties
+    if (player1Score === player2Score) {
+      toast.error("לא יכול להיות תיקו - יש להזין תוצאות שונות");
+      return;
+    }
+
+    // Validation: Score range 0-100
+    if (
+      player1Score < 0 ||
+      player1Score > 100 ||
+      player2Score < 0 ||
+      player2Score > 100
+    ) {
+      toast.error("הניקוד חייב להיות בין 0 ל-100");
+      return;
+    }
+
+    setUpdatingScore(true);
+    try {
+      const response = await MatchFrontendService.updateScore({
+        matchId: selectedMatch._id,
+        player1Score,
+        player2Score,
+      });
+
+      if (response.success) {
+        toast.success("התוצאה עודכנה בהצלחה!");
+        await fetchGroups();
+        setShowScoreDialog(false);
+      } else {
+        toast.error(response.error || "נכשל בעדכון תוצאה");
+      }
+    } catch (error) {
+      toast.error("אירעה שגיאה");
+    } finally {
+      setUpdatingScore(false);
     }
   };
 
@@ -448,18 +504,19 @@ function GroupsPage() {
                           </h3>
                           <div className="border rounded-lg overflow-hidden">
                             {/* Table Header */}
-                            <div className="bg-gray-50 grid grid-cols-6 gap-2 px-3 py-2 text-xs font-medium text-gray-700">
+                            <div className="bg-gray-50 grid grid-cols-7 gap-2 px-3 py-2 text-xs font-medium text-gray-700">
                               <div className="text-right">#</div>
                               <div className="col-span-2 text-right">שחקן</div>
+                              <div className="text-center">משחקים</div>
+                              <div className="text-center">נצחונות</div>
                               <div className="text-center">נק׳</div>
                               <div className="text-center">הפרש</div>
-                              <div className="text-center">משחקים</div>
                             </div>
                             {/* Table Body */}
                             {group.standings.map((playerData, index) => (
                               <div
                                 key={playerData.player._id}
-                                className={`grid grid-cols-6 gap-2 px-3 py-2.5 text-sm border-t ${
+                                className={`grid grid-cols-7 gap-2 px-3 py-2.5 text-sm border-t ${
                                   index < group.numberOfAdvancingPlayers
                                     ? "bg-green-50"
                                     : ""
@@ -471,15 +528,18 @@ function GroupsPage() {
                                 <div className="col-span-2 text-right truncate">
                                   {playerData.player.name}
                                 </div>
+                                <div className="text-center text-gray-600">
+                                  {playerData.matchesPlayed}
+                                </div>
+                                <div className="text-center text-gray-600">
+                                  {playerData.wins}
+                                </div>
                                 <div className="text-center font-semibold">
                                   {playerData.points}
                                 </div>
                                 <div className="text-center">
                                   {playerData.pointDifference > 0 ? "+" : ""}
                                   {playerData.pointDifference}
-                                </div>
-                                <div className="text-center text-gray-600">
-                                  {playerData.matchesPlayed}
                                 </div>
                               </div>
                             ))}
@@ -541,13 +601,21 @@ function GroupsPage() {
                                         </span>
                                       </div>
                                     </div>
-                                    {match.status === "SCHEDULED" && (
-                                      <div className="text-center mt-1.5">
-                                        <span className="inline-block px-2 py-0.5 bg-white rounded text-xs text-gray-600">
-                                          ממתין למשחק
-                                        </span>
-                                      </div>
-                                    )}
+                                    <div className="mt-2">
+                                      <Button
+                                        onClick={() =>
+                                          handleOpenScoreDialog(match)
+                                        }
+                                        size="sm"
+                                        variant="outline"
+                                        className="w-full text-xs"
+                                      >
+                                        <Edit className="w-3 h-3 ml-1" />
+                                        {match.status === "COMPLETED"
+                                          ? "עדכן תוצאה"
+                                          : "הזן תוצאה"}
+                                      </Button>
+                                    </div>
                                   </div>
                                 )
                               )}
@@ -657,6 +725,107 @@ function GroupsPage() {
                       size="sm"
                     >
                       {deleting ? "מוחק..." : "כן, מחק הכל"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {/* Score Update Dialog */}
+              <Dialog open={showScoreDialog} onOpenChange={setShowScoreDialog}>
+                <DialogContent
+                  className="w-[calc(100%-2rem)] sm:max-w-md"
+                  dir="rtl"
+                >
+                  <DialogHeader>
+                    <DialogTitle className="text-base text-right flex items-center gap-2">
+                      <Edit className="w-5 h-5 text-blue-600" />
+                      עדכון תוצאה
+                    </DialogTitle>
+                    <DialogDescription className="text-sm text-right">
+                      הזן את התוצאה הסופית של המשחק
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4" dir="rtl">
+                    {/* Player 1 Score */}
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="player1Score"
+                        className="text-right block"
+                      >
+                        {selectedMatch?.player1?.name || "שחקן 1"}
+                      </Label>
+                      <Input
+                        id="player1Score"
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={player1Score}
+                        onChange={(e) =>
+                          setPlayer1Score(Number(e.target.value))
+                        }
+                        className="text-center text-lg"
+                      />
+                    </div>
+
+                    {/* Player 2 Score */}
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="player2Score"
+                        className="text-right block"
+                      >
+                        {selectedMatch?.player2?.name || "שחקן 2"}
+                      </Label>
+                      <Input
+                        id="player2Score"
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={player2Score}
+                        onChange={(e) =>
+                          setPlayer2Score(Number(e.target.value))
+                        }
+                        className="text-center text-lg"
+                      />
+                    </div>
+
+                    {player1Score === player2Score && (
+                      <p className="text-sm text-orange-600 text-right">
+                        ⚠️ תיקו - יש להזין תוצאות שונות
+                      </p>
+                    )}
+                    {(player1Score < 0 ||
+                      player1Score > 100 ||
+                      player2Score < 0 ||
+                      player2Score > 100) && (
+                      <p className="text-sm text-red-600 text-right">
+                        ⚠️ הניקוד חייב להיות בין 0 ל-100
+                      </p>
+                    )}
+                  </div>
+                  <DialogFooter className="flex-col-reverse sm:flex-row gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowScoreDialog(false)}
+                      disabled={updatingScore}
+                      className="w-full sm:w-auto"
+                      size="sm"
+                    >
+                      ביטול
+                    </Button>
+                    <Button
+                      onClick={handleUpdateScore}
+                      disabled={
+                        updatingScore ||
+                        player1Score === player2Score ||
+                        player1Score < 0 ||
+                        player1Score > 100 ||
+                        player2Score < 0 ||
+                        player2Score > 100
+                      }
+                      className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700"
+                      size="sm"
+                    >
+                      {updatingScore ? "מעדכן..." : "עדכן תוצאה"}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
