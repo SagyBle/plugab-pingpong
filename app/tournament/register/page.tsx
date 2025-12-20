@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import TournamentFrontendService from "@/app/frontendServices/tournament.frontendService";
 import PlayerFrontendService from "@/app/frontendServices/player.frontendService";
+import { useAuth } from "@/app/contexts/AuthContext";
 import { toast } from "sonner";
 import {
   Calendar,
@@ -56,7 +57,13 @@ interface Tournament {
 function RegisterPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const tournamentId = searchParams.get("id");
+  const { isAdmin, logout } = useAuth();
+
+  // Get current full URL for redirect
+  const currentUrl =
+    pathname + (searchParams.toString() ? `?${searchParams.toString()}` : "");
 
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [selectedTournament, setSelectedTournament] =
@@ -219,14 +226,40 @@ function RegisterPage() {
               </span>
             </div>
             <div className="flex gap-2">
-              <Link href="/login" className="hidden sm:block">
-                <Button
-                  size="sm"
-                  className="bg-blue-600 hover:bg-blue-700 text-sm"
+              {isAdmin ? (
+                <>
+                  <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-md">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-xs font-medium text-green-700">
+                      מחובר כמנהל
+                    </span>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      logout();
+                      toast.success("התנתקת בהצלחה");
+                      window.location.reload();
+                    }}
+                    className="text-sm"
+                  >
+                    התנתק
+                  </Button>
+                </>
+              ) : (
+                <Link
+                  href={`/login?redirectTo=${encodeURIComponent(currentUrl)}`}
+                  className="hidden sm:block"
                 >
-                  כניסת מנהל
-                </Button>
-              </Link>
+                  <Button
+                    size="sm"
+                    className="bg-blue-600 hover:bg-blue-700 text-sm"
+                  >
+                    כניסת מנהל
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
         </nav>
@@ -278,8 +311,7 @@ function RegisterPage() {
                       {selectedTournament.players &&
                         selectedTournament.players.length > 0 && (
                           <div className="flex gap-2 mt-3">
-                            {process.env.NEXT_PUBLIC_IS_ADMIN_MODE ===
-                              "true" && (
+                            {isAdmin && (
                               <Link
                                 href={`/tournament/stages/groups?tournamentId=${selectedTournament._id}`}
                               >
@@ -568,7 +600,7 @@ function RegisterPage() {
             <p className="text-sm sm:text-base text-gray-600">
               בחר טורניר והרשם לתחרות
             </p>
-            {process.env.NEXT_PUBLIC_IS_ADMIN_MODE === "true" && (
+            {isAdmin && (
               <div className="mt-4">
                 <Link href="/dashboard">
                   <Button

@@ -46,4 +46,3 @@ export async function PUT(request: NextRequest) {
     return BackendApiService.handleError(error);
   }
 }
-

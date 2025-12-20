@@ -31,6 +31,10 @@ class AdminFrontendService {
     return response;
   }
 
+  static async verifyToken() {
+    return await ApiService.get<{ isValid: boolean }>("/admin/verify");
+  }
+
   static logout() {
     ApiService.removeToken();
   }

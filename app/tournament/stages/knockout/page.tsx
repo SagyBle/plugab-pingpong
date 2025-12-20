@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ import {
 import TournamentFrontendService from "@/app/frontendServices/tournament.frontendService";
 import KnockoutFrontendService from "@/app/frontendServices/knockout.frontendService";
 import MatchFrontendService from "@/app/frontendServices/match.frontendService";
+import { useAuth } from "@/app/contexts/AuthContext";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -71,7 +72,13 @@ interface Match {
 function KnockoutPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const tournamentId = searchParams.get("tournamentId");
+  const { isAdmin, logout } = useAuth();
+
+  // Get current full URL for redirect
+  const currentUrl =
+    pathname + (searchParams.toString() ? `?${searchParams.toString()}` : "");
 
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [matchesByRound, setMatchesByRound] = useState<{
@@ -137,7 +144,7 @@ function KnockoutPage() {
 
   // Countdown timer effect
   useEffect(() => {
-    const deadline = new Date("2025-12-18T08:00:00").getTime();
+    const deadline = new Date("2025-12-21T16:00:00").getTime();
 
     const updateCountdown = () => {
       const now = new Date().getTime();
@@ -587,14 +594,40 @@ function KnockoutPage() {
             </span>
           </Link>
           <div className="flex gap-2">
-            <Link href="/login" className="hidden sm:block">
-              <Button
-                size="sm"
-                className="bg-blue-600 hover:bg-blue-700 text-sm"
+            {isAdmin ? (
+              <>
+                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-md">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs font-medium text-green-700">
+                    מחובר כמנהל
+                  </span>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    logout();
+                    toast.success("התנתקת בהצלחה");
+                    window.location.reload();
+                  }}
+                  className="text-sm"
+                >
+                  התנתק
+                </Button>
+              </>
+            ) : (
+              <Link
+                href={`/login?redirectTo=${encodeURIComponent(currentUrl)}`}
+                className="hidden sm:block"
               >
-                כניסת מנהל
-              </Button>
-            </Link>
+                <Button
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-sm"
+                >
+                  כניסת מנהל
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </nav>
@@ -677,8 +710,7 @@ function KnockoutPage() {
                         </div>
                       </div>
                       <p className="text-sm text-orange-700">
-                        יש לסיים את כל המשחקים עד יום רביעי, 18/12/2025 בשעה
-                        8:00
+                        21/12/2025 בשעה 16:00
                       </p>
                     </div>
                   </CardContent>
@@ -688,7 +720,7 @@ function KnockoutPage() {
               {/* Controls */}
               {allMatches.length === 0 ? (
                 <>
-                  {process.env.NEXT_PUBLIC_IS_ADMIN_MODE === "true" ? (
+                  {isAdmin ? (
                     <Card className="border mb-6">
                       <CardHeader className="pb-3" dir="rtl">
                         <CardTitle className="text-lg text-right">
@@ -805,7 +837,7 @@ function KnockoutPage() {
                         )}
                       </Button>
                     )}
-                    {process.env.NEXT_PUBLIC_IS_ADMIN_MODE === "true" && (
+                    {isAdmin && (
                       <Button
                         onClick={() => setShowDeleteDialog(true)}
                         variant="destructive"

@@ -1,18 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import AdminFrontendService from "@/app/frontendServices/admin.frontendService";
+import { useAuth } from "@/app/contexts/AuthContext";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { checkAuth } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -25,13 +34,23 @@ export default function LoginPage() {
       const response = await AdminFrontendService.login({ email, password });
 
       if (response.success) {
-        toast.success("Login successful!");
-        router.push("/dashboard");
+        toast.success("התחברת בהצלחה!");
+        await checkAuth(); // Update auth context
+
+        // Get redirectTo from query params, default to /dashboard
+        const redirectTo = searchParams.get("redirectTo") || "/dashboard";
+
+        // Security: Only allow internal routes (must start with /)
+        const safeRedirect = redirectTo.startsWith("/")
+          ? redirectTo
+          : "/dashboard";
+
+        router.push(safeRedirect);
       } else {
-        toast.error(response.error || "Login failed");
+        toast.error(response.error || "כניסה נכשלה");
       }
     } catch (error) {
-      toast.error("An error occurred during login");
+      toast.error("אירעה שגיאה בהתחברות");
     } finally {
       setLoading(false);
     }
@@ -40,11 +59,14 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-6">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-6"
+        >
           <ArrowLeft className="w-4 h-4" />
           Back to Home
         </Link>
-        
+
         <Card>
           <CardHeader className="text-center">
             <CardTitle className="text-2xl">Admin Login</CardTitle>
@@ -86,4 +108,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

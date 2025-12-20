@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,8 @@ import {
 } from "@/components/ui/dialog";
 import TournamentFrontendService from "@/app/frontendServices/tournament.frontendService";
 import GroupFrontendService from "@/app/frontendServices/group.frontendService";
+import MatchFrontendService from "@/app/frontendServices/match.frontendService";
+import { useAuth } from "@/app/contexts/AuthContext";
 import { toast } from "sonner";
 import {
   Trophy,
@@ -35,7 +37,6 @@ import {
   Target,
   Edit,
 } from "lucide-react";
-import MatchFrontendService from "@/app/frontendServices/match.frontendService";
 
 interface Tournament {
   _id: string;
@@ -72,7 +73,13 @@ interface Group {
 function GroupsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const tournamentId = searchParams.get("tournamentId");
+  const { isAdmin, logout } = useAuth();
+
+  // Get current full URL for redirect
+  const currentUrl =
+    pathname + (searchParams.toString() ? `?${searchParams.toString()}` : "");
 
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [groups, setGroups] = useState<Group[]>([]);
@@ -286,14 +293,40 @@ function GroupsPage() {
             </span>
           </Link>
           <div className="flex gap-2">
-            <Link href="/login" className="hidden sm:block">
-              <Button
-                size="sm"
-                className="bg-blue-600 hover:bg-blue-700 text-sm"
+            {isAdmin ? (
+              <>
+                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-md">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs font-medium text-green-700">
+                    מחובר כמנהל
+                  </span>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    logout();
+                    toast.success("התנתקת בהצלחה");
+                    window.location.reload();
+                  }}
+                  className="text-sm"
+                >
+                  התנתק
+                </Button>
+              </>
+            ) : (
+              <Link
+                href={`/login?redirectTo=${encodeURIComponent(currentUrl)}`}
+                className="hidden sm:block"
               >
-                כניסת מנהל
-              </Button>
-            </Link>
+                <Button
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-sm"
+                >
+                  כניסת מנהל
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </nav>
@@ -341,7 +374,7 @@ function GroupsPage() {
               </div>
 
               {/* Controls */}
-              {process.env.NEXT_PUBLIC_IS_ADMIN_MODE === "true" && (
+              {isAdmin && (
                 <Card className="border mb-6">
                   <CardHeader className="pb-3" dir="rtl">
                     <CardTitle className="text-lg text-right">
@@ -457,48 +490,47 @@ function GroupsPage() {
                       </CardHeader>
                       <CardContent dir="rtl">
                         {/* Create Matches Button */}
-                        {process.env.NEXT_PUBLIC_IS_ADMIN_MODE === "true" &&
-                          group.matches.length === 0 && (
-                            <div className="mb-4">
-                              <Button
-                                onClick={() => handleCreateMatches(group._id)}
-                                disabled={creatingMatches === group._id}
-                                size="sm"
-                                className="w-full bg-blue-600 hover:bg-blue-700"
-                              >
-                                {creatingMatches === group._id ? (
-                                  <span className="flex items-center gap-2">
-                                    <svg
-                                      className="animate-spin h-3.5 w-3.5"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                    >
-                                      <circle
-                                        className="opacity-25"
-                                        cx="12"
-                                        cy="12"
-                                        r="10"
-                                        stroke="currentColor"
-                                        strokeWidth="4"
-                                      ></circle>
-                                      <path
-                                        className="opacity-75"
-                                        fill="currentColor"
-                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                      ></path>
-                                    </svg>
-                                    יוצר משחקים...
-                                  </span>
-                                ) : (
-                                  <span className="flex items-center gap-2">
-                                    צור משחקים
-                                    <Target className="w-3.5 h-3.5" />
-                                  </span>
-                                )}
-                              </Button>
-                            </div>
-                          )}
+                        {isAdmin && group.matches.length === 0 && (
+                          <div className="mb-4">
+                            <Button
+                              onClick={() => handleCreateMatches(group._id)}
+                              disabled={creatingMatches === group._id}
+                              size="sm"
+                              className="w-full bg-blue-600 hover:bg-blue-700"
+                            >
+                              {creatingMatches === group._id ? (
+                                <span className="flex items-center gap-2">
+                                  <svg
+                                    className="animate-spin h-3.5 w-3.5"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <circle
+                                      className="opacity-25"
+                                      cx="12"
+                                      cy="12"
+                                      r="10"
+                                      stroke="currentColor"
+                                      strokeWidth="4"
+                                    ></circle>
+                                    <path
+                                      className="opacity-75"
+                                      fill="currentColor"
+                                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                    ></path>
+                                  </svg>
+                                  יוצר משחקים...
+                                </span>
+                              ) : (
+                                <span className="flex items-center gap-2">
+                                  צור משחקים
+                                  <Target className="w-3.5 h-3.5" />
+                                </span>
+                              )}
+                            </Button>
+                          </div>
+                        )}
 
                         {/* Standings Table */}
                         <div className="mb-4">

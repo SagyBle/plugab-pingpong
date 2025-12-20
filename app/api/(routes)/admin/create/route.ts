@@ -5,28 +5,19 @@ import BackendApiService from "@/app/api/backendServices/api.backendService";
 
 export async function POST(request: NextRequest) {
   try {
+    // Check for admin secret token in headers
+    const secretToken = request.headers.get("x-admin-secret");
+
+    if (!secretToken || secretToken !== process.env.ADMIN_SECRET_TOKEN) {
+      return BackendApiService.errorResponse("Unauthorized", 401);
+    }
+
     const { name, email, password, role } = await request.json();
 
     // Validate required fields
     if (!name || !email || !password) {
       return BackendApiService.errorResponse(
         "Name, email, and password are required",
-        400
-      );
-    }
-
-    console.log("sagy2");
-
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return BackendApiService.errorResponse("Invalid email format", 400);
-    }
-
-    // Password validation
-    if (password.length < 8) {
-      return BackendApiService.errorResponse(
-        "Password must be at least 8 characters",
         400
       );
     }

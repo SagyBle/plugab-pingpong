@@ -12,6 +12,7 @@ const publicRoutes = [
   "/tournament/stages/groups",
   "/tournament/stages/knockout",
   "/api/admin/login",
+  "/api/admin/verify",
   "/api/tournaments/list",
   "/api/players/list",
   "/api/players/create",
@@ -63,6 +64,7 @@ function isAdminOnlyRoute(pathname: string): boolean {
 
 function handleAdminOnlyRoute(request: NextRequest) {
   const adminKey = request.headers.get("x-admin-key");
+
   if (adminKey === process.env.ADMIN_SIGNUP_KEY) {
     return NextResponse.next();
   }
