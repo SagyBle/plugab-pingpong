@@ -295,7 +295,7 @@ function GroupsPage() {
           <div className="flex gap-2">
             {isAdmin ? (
               <>
-                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-md">
+                <div className="flex items-center gap-2 px-2 sm:px-3 py-1.5 bg-green-50 border border-green-200 rounded-md">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                   <span className="text-xs font-medium text-green-700">
                     מחובר כמנהל
@@ -317,7 +317,6 @@ function GroupsPage() {
             ) : (
               <Link
                 href={`/login?redirectTo=${encodeURIComponent(currentUrl)}`}
-                className="hidden sm:block"
               >
                 <Button
                   size="sm"

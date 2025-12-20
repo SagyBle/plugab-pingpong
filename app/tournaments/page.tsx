@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import TournamentFrontendService from "@/app/frontendServices/tournament.frontendService";
 import PlayerFrontendService from "@/app/frontendServices/player.frontendService";
+import { useAuth } from "@/app/contexts/AuthContext";
 import { toast } from "sonner";
 import {
   Calendar,
@@ -58,7 +59,13 @@ interface Tournament {
 function TournamentsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const tournamentId = searchParams.get("id");
+  const { isAdmin, logout } = useAuth();
+
+  // Get current full URL for redirect
+  const currentUrl =
+    pathname + (searchParams.toString() ? `?${searchParams.toString()}` : "");
 
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [selectedTournament, setSelectedTournament] =
@@ -223,14 +230,39 @@ function TournamentsPage() {
               </span>
             </Link>
             <div className="flex gap-2">
-              <Link href="/login" className="hidden sm:block">
-                <Button
-                  size="sm"
-                  className="bg-blue-600 hover:bg-blue-700 text-sm"
+              {isAdmin ? (
+                <>
+                  <div className="flex items-center gap-2 px-2 sm:px-3 py-1.5 bg-green-50 border border-green-200 rounded-md">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-xs font-medium text-green-700">
+                      מחובר כמנהל
+                    </span>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      logout();
+                      toast.success("התנתקת בהצלחה");
+                      window.location.reload();
+                    }}
+                    className="text-sm"
+                  >
+                    התנתק
+                  </Button>
+                </>
+              ) : (
+                <Link
+                  href={`/login?redirectTo=${encodeURIComponent(currentUrl)}`}
                 >
-                  כניסת מנהל
-                </Button>
-              </Link>
+                  <Button
+                    size="sm"
+                    className="bg-blue-600 hover:bg-blue-700 text-sm"
+                  >
+                    כניסת מנהל
+                  </Button>
+                </Link>
+              )}
               <Link href="/tournaments">
                 <Button variant="ghost" size="sm" className="text-sm">
                   טורנירים
@@ -507,14 +539,39 @@ function TournamentsPage() {
             </span>
           </Link>
           <div className="flex gap-2">
-            <Link href="/login" className="hidden sm:block">
-              <Button
-                size="sm"
-                className="bg-blue-600 hover:bg-blue-700 text-sm"
+            {isAdmin ? (
+              <>
+                <div className="flex items-center gap-2 px-2 sm:px-3 py-1.5 bg-green-50 border border-green-200 rounded-md">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs font-medium text-green-700">
+                    מחובר כמנהל
+                  </span>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    logout();
+                    toast.success("התנתקת בהצלחה");
+                    window.location.reload();
+                  }}
+                  className="text-sm"
+                >
+                  התנתק
+                </Button>
+              </>
+            ) : (
+              <Link
+                href={`/login?redirectTo=${encodeURIComponent(currentUrl)}`}
               >
-                כניסת מנהל
-              </Button>
-            </Link>
+                <Button
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-sm"
+                >
+                  כניסת מנהל
+                </Button>
+              </Link>
+            )}
             <Link href="/tournaments">
               <Button variant="ghost" size="sm" className="text-sm">
                 טורנירים
