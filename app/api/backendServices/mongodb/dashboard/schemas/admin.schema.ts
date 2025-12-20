@@ -24,6 +24,4 @@ export const AdminSchema = new Schema<Admin>(
   { timestamps: true }
 );
 
-// Indexes
-AdminSchema.index({ email: 1 });
-
+// Index is already created by unique: true on email field, so we remove the duplicate
