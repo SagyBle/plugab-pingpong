@@ -347,13 +347,14 @@ function KnockoutPage() {
     }
   };
 
-  // Get available players for custom match (not in the selected round)
+  // Get available players for custom match (not in non-cancelled matches in the selected round)
   const getAvailablePlayers = () => {
     if (!selectedRound || !tournament?.players) return [];
 
-    const playersInRound = (matchesByRound[selectedRound.round] || []).flatMap(
-      (match) => [match.player1?._id, match.player2?._id].filter(Boolean)
-    );
+    // Only exclude players from non-cancelled matches
+    const playersInRound = (matchesByRound[selectedRound.round] || [])
+      .filter((match) => match.status !== "CANCELLED")
+      .flatMap((match) => [match.player1?._id, match.player2?._id].filter(Boolean));
 
     return tournament.players.filter(
       (player: any) => !playersInRound.includes(player._id)
