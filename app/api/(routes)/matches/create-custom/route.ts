@@ -44,10 +44,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if either player is already in a match in this round
+    // Check if either player is already in a non-cancelled match in this round
     const existingMatches = await mongoService.Match.find({
       tournament: tournamentId,
       round: round,
+      status: { $ne: "CANCELLED" }, // Exclude cancelled matches
       $or: [
         { player1: player1Id },
         { player2: player1Id },
